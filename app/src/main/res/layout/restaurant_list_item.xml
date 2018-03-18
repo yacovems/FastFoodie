@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://scemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="100dp"
+    android:background="@color/white"
+    app:cardCornerRadius="10dp">
+
+    <LinearLayout
+        android:id="@+id/item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/restaurant_img"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:padding="2dp"
+            android:src="@drawable/logo"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/restaurant_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:text="Name"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/rating"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/stars_small_3_half"/>
+
+                <TextView
+                    android:id="@+id/review_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/charcoalGray"
+                    android:textSize="10dp"
+                    android:text="168 reviews"
+                    android:paddingLeft="5dp"
+                    android:layout_gravity="center_vertical"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/charcoalGray"
+                android:text="Address"/>
+
+            <TextView
+                android:id="@+id/cuisine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/charcoalGray"
+                android:text="Cuisine"/>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageButton
+                android:id="@+id/call"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/call"
+                android:backgroundTint="@color/white"
+                android:layout_toLeftOf="@+id/favorite"/>
+
+            <ImageButton
+                android:id="@+id/favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/favorite_border"
+                android:backgroundTint="@color/white"
+                android:layout_alignParentEnd="true"/>
+
+            <TextView
+                android:id="@+id/cost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/green"
+                android:textStyle="bold"
+                android:textSize="10sp"
+                android:text="$$$$"
+                android:paddingRight="5dp"
+                android:layout_above="@+id/distance"
+                android:layout_alignParentEnd="true"/>
+
+            <TextView
+                android:id="@+id/distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/charcoalGray"
+                android:textSize="10sp"
+                android:text="1.2 miles"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:paddingRight="5dp"
+                android:paddingBottom="5dp"/>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/charcoalGray" />
+
+</android.support.v7.widget.CardView>
