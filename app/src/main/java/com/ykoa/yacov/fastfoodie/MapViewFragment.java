@@ -163,13 +163,29 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         Log.d(TAG, "-------------------------> onMApLoaded");
         location = mMapAPI.getLocation();
         LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
+        mCallback.setLatLng(point);
+        mCallback.setMap(mMap);
         // Set search radius around user location.
-        mMapAPI.drawCircle(point);
+        drawCircle(point);
         try {
             findNearByRestaurants(point);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Draws a circle on the map, depending
+     * on the search radius size.
+     */
+    public void drawCircle(LatLng point) {
+        mMap.clear();
+        searchRadius = mCallback.getRadius();
+        Circle circle = mMap.addCircle(new CircleOptions()
+                .center(point)
+                .radius(searchRadius)
+                .strokeColor(Color.rgb(102,93,163))
+                .fillColor(Color.TRANSPARENT));
     }
 
     public void findNearByRestaurants(LatLng p) throws IOException {
@@ -250,6 +266,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             }
             // Set restaurant list
             mCallback.setRestaurantList(list);
+            mCallback.setHasChanged(true);
         }
     }
 
@@ -395,6 +412,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 //            Log.e("Exception: %s", e.getMessage());
 //        }
 //    }
+
 
     @Override
     public void fragmentBecameVisible() {

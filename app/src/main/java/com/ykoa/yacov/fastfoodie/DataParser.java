@@ -57,7 +57,7 @@ public class DataParser {
             String name = restaurantJSON.getString("name");
 
             // Get phone number
-            String phone = restaurantJSON.optString("display_phone", "Phone not available");
+            String phone = restaurantJSON.optString("phone", "Phone not available");
 
             // Get yelp website
             String website = restaurantJSON.getString("url");
@@ -76,7 +76,7 @@ public class DataParser {
 
             // Get cuisine
             JSONArray categoriesObject = restaurantJSON.getJSONArray("categories");
-            String cuisine = categoriesObject.getJSONObject(0).getString("alias");
+            String cuisine = categoriesObject.getJSONObject(0).getString("title");
 
             // Get Address
             JSONObject location = restaurantJSON.getJSONObject("location");

@@ -32,8 +32,8 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private RecyclerView mRecyclerView;
     private RestaurantListAdapter mAdapter;
     private ArrayList<RestaurantInfo> mRestaurantsList;
-    private ImageButton favorite;
     private FragmentCommunication mCallback;
+    private boolean hasChanged;
 
     @Nullable
     @Override
@@ -47,8 +47,6 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         if (data != null) {getBundleArgs(data);}
 
         buildRecyclerView(view);
-
-        favorite = (ImageButton) view.findViewById(R.id.favorite);
 
         return view;
     }
@@ -67,16 +65,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         }
     }
 
-//    View.OnClickListener imgButtonHandler = new View.OnClickListener() {
-//
-//        public void onClick(View v) {
-//            favorite.setBackgroundResource(R.drawable.favorite);
-//
-//        }
-//    };
-
     public void getBundleArgs(Bundle data) {
-
         mRestaurantsList = data.getParcelableArrayList("restaurant list");
     }
 
@@ -103,7 +92,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
                 RestaurantInfo restaurant = mRestaurantsList.get(position);
 
                 try {
-                    Log.d(TAG, "-------------------------> ca]l btn was clicked. num is: " + restaurant.getPhoneNumber());
+                    Log.d(TAG, "-------------------------> call btn was clicked. num is: " + restaurant.getPhoneNumber());
                     Intent callIntent = new Intent(Intent.ACTION_CALL);
                     callIntent.setData(Uri.parse("tel:" + restaurant.getPhoneNumber()));
                     startActivity(callIntent);
@@ -136,9 +125,12 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     @Override
     public void fragmentBecameVisible() {
         // Update
+        hasChanged = mCallback.getHasChanged();
         mRestaurantsList = mCallback.getRestaurantList();
-        mAdapter = new RestaurantListAdapter(mRestaurantsList, getContext());
-        mRecyclerView.setAdapter(mAdapter);
+        if (hasChanged) {
+            mAdapter = new RestaurantListAdapter(mRestaurantsList, getContext());
+            mRecyclerView.setAdapter(mAdapter);
+        }
     }
 }
 

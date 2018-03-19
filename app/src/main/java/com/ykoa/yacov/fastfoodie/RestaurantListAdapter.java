@@ -64,17 +64,22 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             rating = itemView.findViewById(R.id.rating);
             cost = itemView.findViewById(R.id.cost);
             img = itemView.findViewById(R.id.restaurant_img);
+            reviewCount = itemView.findViewById(R.id.review_count);
             call = itemView.findViewById(R.id.call);
             favorite = itemView.findViewById(R.id.favorite);
-            reviewCount = itemView.findViewById(R.id.review_count);
+            favorite.setBackgroundResource(R.drawable.favorite_border);
 
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Log.d("Res list adapter", "-------------------------> call btn was clicked");
                     if (listener != null) {
+                        Log.d("Res list adapter", "Listener is not NULL!!");
                         int position = getAdapterPosition();
+                        Log.d("Res list adapter", "Adapter position: " + position);
                         if (position != RecyclerView.NO_POSITION) {
                             listener.onCallClick(position);
+                            Log.d("Res list adapter", "-------------------------> call btn was clicked");
                         }
                     }
                 }
@@ -83,10 +88,11 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             favorite.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Log.d("Res list adapter", "-------------------------> favorite btn was clicked");
+                    favorite.setBackgroundResource(R.drawable.favorite);
                     if (listener != null) {
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
-                            favorite.setBackgroundResource(R.drawable.favorite);
                             listener.onFavoriteClick(position);
                         }
                     }

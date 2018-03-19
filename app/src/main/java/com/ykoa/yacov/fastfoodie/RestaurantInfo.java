@@ -21,6 +21,7 @@ public class RestaurantInfo implements Parcelable{
     private String img;
     private String distance;
     private String reviewCount;
+    private boolean isFavorite;
 
 
     public RestaurantInfo() {}
@@ -68,6 +69,10 @@ public class RestaurantInfo implements Parcelable{
 
     public String getReviewCount() {return reviewCount;}
 
+    public boolean getIsFavorite() {return isFavorite;}
+
+    public void setIsFavorite(boolean isFavorite) {this.isFavorite = isFavorite;}
+
     @Override
     public int describeContents() {
         return 0;
@@ -83,6 +88,7 @@ public class RestaurantInfo implements Parcelable{
         this.distance = in.readString();
         this.img = in.readString();
         this.img = in.readString();
+
     }
 
     @Override

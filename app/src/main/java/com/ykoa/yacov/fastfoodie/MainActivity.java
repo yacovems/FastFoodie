@@ -3,6 +3,7 @@ package com.ykoa.yacov.fastfoodie;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -22,7 +23,14 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
@@ -34,9 +42,14 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<RestaurantInfo> mRestaurantList;
     private ImageButton[] filterButtons;
     private int buttonsID;
-    private int searchRadius = 500;
+    private int searchRadius = 4000;
     private Spinner cuisineSpinner;
     private ArrayAdapter<CharSequence> adapter;
+    private boolean hasChanged;
+    private GoogleMap mMap = null;
+    private RestaurantListFragment RLF = null;
+    private MapViewFragment MVF = null;
+    private LatLng deviceLocation = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,27 +212,36 @@ public class MainActivity extends AppCompatActivity
 
         ImageButton walkBtn = (ImageButton) layout.findViewById(R.id.walkD);
         ImageButton driveBtn = (ImageButton) layout.findViewById(R.id.driveD);
-//        walkBtn.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                popup.dismiss();
-//                setRadius(500);
-//                Toast.makeText(context, "walking distance", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
-//        driveBtn.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                popup.dismiss();
-//                setRadius(1000);
-//                Toast.makeText(context, "driving distance", Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        walkBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popup.dismiss();
+                setRadius(500);
+                MVF.drawCircle(deviceLocation);
+                try {
+                    MVF.findNearByRestaurants(deviceLocation);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(context, "walking distance", Toast.LENGTH_SHORT).show();
+            }
+        });
 
+        driveBtn.setOnClickListener(new View.OnClickListener() {
 
+            @Override
+            public void onClick(View v) {
+                popup.dismiss();
+                setRadius(1000);
+                MVF.drawCircle(deviceLocation);
+                try {
+                    MVF.findNearByRestaurants(deviceLocation);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(context, "driving distance", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -228,18 +250,18 @@ public class MainActivity extends AppCompatActivity
         // Send parcel with task list data to both
         // map and restaurant list fragments
 
-//        PendingTasksFragment PTF = new PendingTasksFragment();
-//        Bundle b = new Bundle();
+        MVF = new MapViewFragment();
+        Bundle b = new Bundle();
 //        b.putParcelableArrayList("pending list", mTaskList);
 //        b.putParcelableArrayList("completed list", mCompletedTaskList);
-//        PTF.setArguments(b);
+        MVF.setArguments(b);
 
-        RestaurantListFragment RLF = new RestaurantListFragment();
+        RLF = new RestaurantListFragment();
         Bundle b2 = new Bundle();
         b2.putParcelableArrayList("restaurant list", mRestaurantList);
         RLF.setArguments(b2);
 
-        adapter.addFragment(new MapViewFragment(), "Map");
+        adapter.addFragment(MVF, "Map");
         adapter.addFragment(RLF, "List");
         viewPager.setAdapter(adapter);
 
@@ -313,5 +335,29 @@ public class MainActivity extends AppCompatActivity
     @Override
     public ArrayList<RestaurantInfo> getRestaurantList() {
         return mRestaurantList;
+    }
+
+    @Override
+    public void setHasChanged(boolean changed) {this.hasChanged = changed;}
+
+    @Override
+    public boolean getHasChanged() {return hasChanged;}
+
+    @Override
+    public GoogleMap getMap() {
+        return mMap;
+    }
+
+    @Override
+    public void setMap(GoogleMap map) {
+        mMap = map;
+    }
+
+    @Override
+    public LatLng getLatLng() {return deviceLocation;}
+
+    @Override
+    public void setLatLng(LatLng position) {
+        deviceLocation = position;
     }
 }

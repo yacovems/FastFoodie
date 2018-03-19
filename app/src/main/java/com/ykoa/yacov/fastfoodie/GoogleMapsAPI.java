@@ -104,19 +104,6 @@ public class GoogleMapsAPI extends FragmentActivity {
     }
 
     /**
-     * Draws a circle on the map, depending
-     * on the search radius size.
-     */
-    public void drawCircle(LatLng point) {
-        mMap.clear();
-        circle = mMap.addCircle(new CircleOptions()
-                .center(point)
-                .radius(searchRadius)
-                .strokeColor(Color.rgb(102,93,163))
-                .fillColor(Color.TRANSPARENT));
-    }
-
-    /**
      * Saves the state of the map when the activity is paused.
      */
     @Override

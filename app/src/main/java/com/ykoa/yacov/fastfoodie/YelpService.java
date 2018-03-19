@@ -27,6 +27,7 @@ public class YelpService {
         urlBuilder.addQueryParameter("latitude", "" + lat);
         urlBuilder.addQueryParameter("longitude", "" + lon);
         urlBuilder.addQueryParameter("radius", "" + radius);
+        urlBuilder.addQueryParameter("limit", "50");
         String url = urlBuilder.build().toString();
 
         Request request= new Request.Builder()

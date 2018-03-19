@@ -1,5 +1,8 @@
 package com.ykoa.yacov.fastfoodie;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 
 /**
@@ -12,4 +15,10 @@ public interface FragmentCommunication {
     public int getRadius();
     public void setRestaurantList(ArrayList<RestaurantInfo> list);
     public ArrayList<RestaurantInfo> getRestaurantList();
+    public void setHasChanged(boolean changed);
+    public boolean getHasChanged();
+    public GoogleMap getMap();
+    public void setMap(GoogleMap map);
+    public LatLng getLatLng();
+    public void setLatLng(LatLng position);
 }
