@@ -7,7 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ScaleDrawable;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -30,6 +33,7 @@ import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -40,17 +44,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        FragmentCommunication {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, FragmentCommunication {
 
     private static final String TAG = "MainActivity";
+
+    // Default search parameters
     private final int DEFAULT_SEARCH_RADIUS = 500;
+    private final int DEFAULT_SEARCH_COST = 4;
+    private final int DEFAULT_SEARCH_RATING = 1;
+
     private int searchRadius = DEFAULT_SEARCH_RADIUS;
+    private int searchCost = DEFAULT_SEARCH_COST;
+    private int searchRating = DEFAULT_SEARCH_RATING;
+
+    private PopupWindow popup;
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
     private ImageButton[] filterButtons;
-    private int buttonsID;
+    private ImageButton[] popupButtons;
+    private int filterBtnID;
     private Spinner cuisineSpinner;
     private ArrayAdapter<CharSequence> adapter;
     private boolean hasChanged;
@@ -58,7 +70,8 @@ public class MainActivity extends AppCompatActivity
     private RestaurantListFragment RLF = null;
     private MapViewFragment MVF = null;
     private LatLng deviceLocation = null;
-    private HashMap<String, RestaurantInfo> favoriteList = null;
+    private HashMap<String, RestaurantInfo> favorites = null;
+    private HashMap<String, RestaurantInfo> forbidden = null;
     private String userName;
     private String userImage;
 
@@ -107,73 +120,77 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void buttons() {
-
         // 5 filter buttons
         filterButtons = new ImageButton[5];
 
-        // When a button is clicked, open the popup window
-        filterButtons[0] = (ImageButton) findViewById(R.id.distance);
-        filterButtons[0].setOnClickListener(new View.OnClickListener() {
+        ImageButton b = (ImageButton) findViewById(R.id.distance);
+        Drawable d = getResources().getDrawable(R.drawable.walk);
+        makeFilterButton(d, b,0, 2);
+
+        b = (ImageButton) findViewById(R.id.cost);
+        d = getResources().getDrawable(R.drawable.cost);
+        makeFilterButton(d, b,1, 5);
+
+        b = (ImageButton) findViewById(R.id.rating);
+        d = getResources().getDrawable(R.drawable.star);
+        makeFilterButton(d, b, 2, 5);
+
+        b = (ImageButton) findViewById(R.id.cuisine);
+        d = getResources().getDrawable(R.drawable.cuisine);
+        makeFilterButton(d, b, 3, 10);
+
+        b = (ImageButton) findViewById(R.id.favorite);
+        d = getResources().getDrawable(R.drawable.favorite_border);
+        makeFilterButton(d, b, 4, 5);
+    }
+
+    private void makeFilterButton(Drawable drawable, ImageButton button,
+                                  final int buttonNum, final int size) {
+        filterButtons[buttonNum] = button;
+        filterButtons[buttonNum].setImageDrawable(drawable);
+        filterButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-
-                buttonsID = 0;
+                filterBtnID = buttonNum;
                 int[] location = new int[2];
-                filterButtons[buttonsID].getLocationOnScreen(location);
+                filterButtons[filterBtnID].getLocationOnScreen(location);
                 showPopup(MainActivity.this, location[0], location[1],
-                        filterButtons[0].getWidth(), filterButtons[0].getHeight(), 2);
+                        filterButtons[buttonNum].getWidth(), filterButtons[buttonNum].getHeight(), size);
             }
         });
+    }
 
-        filterButtons[1] = (ImageButton) findViewById(R.id.cost);
-        filterButtons[1].setOnClickListener(new View.OnClickListener() {
+    private void makePopupButton(final int radius,
+                                 final int cost, final int rating, int buttonNum,
+                                 ImageButton button, final Drawable drawable) {
+
+        if (drawable == null) {
+            Log.d(TAG, "--------------------->>>>>> noooooooooooo " + buttonNum);
+        } else if (button == null) {
+            Log.d(TAG, "--------------------->>>>>> noooooooooooo2 " + buttonNum);
+        }
+
+        popupButtons[buttonNum] = button;
+        popupButtons[buttonNum].setImageDrawable(drawable);
+        popupButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
+                popup.dismiss();
+                if (radius != 0) {setRadius(radius);}
+                if (cost != 0) {setCost(cost);}
+                if (rating != 0) {setRating(rating);}
 
-                buttonsID = 1;
-                int[] location = new int[2];
-                filterButtons[buttonsID].getLocationOnScreen(location);
-                showPopup(MainActivity.this, location[0], location[1],
-                        filterButtons[1].getWidth(), filterButtons[1].getHeight(), 4);
+                MVF.drawCircle(deviceLocation);
+                try {
+                    MVF.findNearByRestaurants(deviceLocation);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                filterButtons[filterBtnID].setImageDrawable(drawable);
             }
         });
 
-        filterButtons[2] = (ImageButton) findViewById(R.id.rating);
-        filterButtons[2].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                buttonsID = 2;
-                int[] location = new int[2];
-                filterButtons[buttonsID].getLocationOnScreen(location);
-                showPopup(MainActivity.this, location[0], location[1],
-                        filterButtons[2].getWidth(), filterButtons[2].getHeight(), 5);
-            }
-        });
-
-        filterButtons[3] = (ImageButton) findViewById(R.id.cuisine);
-        filterButtons[3].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                buttonsID = 3;
-                int[] location = new int[2];
-                filterButtons[buttonsID].getLocationOnScreen(location);
-                showPopup(MainActivity.this, location[0], location[1],
-                        filterButtons[3].getWidth(), filterButtons[3].getHeight(), 10);
-            }
-        });
-
-        filterButtons[4] = (ImageButton) findViewById(R.id.favorite);
-        filterButtons[4].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Update map and list to show only favorites
-                // regardless of the current radius
-
-            }
-        });
     }
 
     // The method that displays the popup.
@@ -182,28 +199,78 @@ public class MainActivity extends AppCompatActivity
         int popupHeight = height * btnNumber;
 
         // Inflate the popup_layout.xml
-        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.popup0);
-        LayoutInflater layoutInflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = layoutInflater.inflate(R.layout.distance_popup_layout, viewGroup);
+        LinearLayout viewGroup = null;
+        LayoutInflater layoutInflater = null;
+        View layout = null;
+        ImageButton b = null;
+        Drawable d = null;
 
-        if (buttonsID == 0) {
+        // 11 popup buttons
+        popupButtons = new ImageButton[11];
+
+        if (filterBtnID == 0) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup0);
             layoutInflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             layout = layoutInflater.inflate(R.layout.distance_popup_layout, viewGroup);
-        } else if (buttonsID == 1) {
+
+            b = (ImageButton) layout.findViewById(R.id.driveD);
+            d = getResources().getDrawable(R.drawable.drive);
+            makePopupButton(500, 0, 0, 0, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.walkD);
+            d = getResources().getDrawable(R.drawable.walk);
+            makePopupButton(1000, 0, 0, 1, b, d);
+
+        } else if (filterBtnID == 1) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup1);
             layoutInflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             layout = layoutInflater.inflate(R.layout.cost_popup_layout, viewGroup);
 
-        } else if (buttonsID == 2) {
+            b = (ImageButton) layout.findViewById(R.id.dollarSign4);
+            d = getResources().getDrawable(R.drawable.cost);
+            makePopupButton(0, 4, 0, 2, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.dollarSign3);
+            d = getResources().getDrawable(R.drawable.cost);
+            makePopupButton(0, 3, 0, 3, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.dollarSign2);
+            d = getResources().getDrawable(R.drawable.cost);
+            makePopupButton(0, 2, 0, 4, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.dollarSign);
+            d = getResources().getDrawable(R.drawable.cost);
+            makePopupButton(0, 1, 0, 5, b, d);
+
+        } else if (filterBtnID == 2) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup2);
             layoutInflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             layout = layoutInflater.inflate(R.layout.rating_popup_layout, viewGroup);
-        } else if (buttonsID == 3) {
+
+            b = (ImageButton) layout.findViewById(R.id.star5);
+            d = getResources().getDrawable(R.drawable.star);
+            makePopupButton(0, 0, 5, 6, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.star4);
+            d = getResources().getDrawable(R.drawable.star);
+            makePopupButton(0, 0, 4, 7, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.star3);
+            d = getResources().getDrawable(R.drawable.star);
+            makePopupButton(0, 0, 3, 8, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.star2);
+            d = getResources().getDrawable(R.drawable.star);
+            makePopupButton(0, 0, 2, 9, b, d);
+
+            b = (ImageButton) layout.findViewById(R.id.star);
+            d = getResources().getDrawable(R.drawable.star);
+            makePopupButton(0, 0, 1, 10, b, d);
+
+        } else if (filterBtnID == 3) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup3);
             layoutInflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -218,7 +285,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         // Creating the PopupWindow
-        final PopupWindow popup = new PopupWindow(context);
+        popup = new PopupWindow(context);
         popup.setAnimationStyle(R.style.Animation);
         popup.setContentView(layout);
         popup.setWidth(popupWidth);
@@ -231,39 +298,10 @@ public class MainActivity extends AppCompatActivity
         }
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 10);
-
-        ImageButton walkBtn = (ImageButton) layout.findViewById(R.id.walkD);
-        ImageButton driveBtn = (ImageButton) layout.findViewById(R.id.driveD);
-        walkBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popup.dismiss();
-                setRadius(500);
-                MVF.drawCircle(deviceLocation);
-                try {
-                    MVF.findNearByRestaurants(deviceLocation);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(context, "walking distance", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        driveBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                popup.dismiss();
-                setRadius(1000);
-                MVF.drawCircle(deviceLocation);
-                try {
-                    MVF.findNearByRestaurants(deviceLocation);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(context, "driving distance", Toast.LENGTH_SHORT).show();
-            }
-        });
+    }
+    
+    private void makeLayout() {
+        
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -274,8 +312,6 @@ public class MainActivity extends AppCompatActivity
 
         MVF = new MapViewFragment();
         Bundle b = new Bundle();
-//        b.putParcelableArrayList("pending list", mTaskList);
-//        b.putParcelableArrayList("completed list", mCompletedTaskList);
         MVF.setArguments(b);
 
         RLF = new RestaurantListFragment();
@@ -324,7 +360,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_profile) {
-            // Handle the camera action
+            
         } else if (id == R.id.nav_review) {
 
         } else if (id == R.id.nav_favorits) {
@@ -340,7 +376,8 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
+    
+    // Fragment communication
     @Override
     public void setRadius(int radius) {
         searchRadius = radius;
@@ -381,5 +418,25 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void setLatLng(LatLng position) {
         deviceLocation = position;
+    }
+
+    @Override
+    public void setCost(int cost) {
+        searchCost = cost;
+    }
+
+    @Override
+    public int getCost() {
+        return searchCost;
+    }
+
+    @Override
+    public void setRating(int rating) {
+        searchRating = rating;
+    }
+
+    @Override
+    public int getRating() {
+        return searchRating;
     }
 }

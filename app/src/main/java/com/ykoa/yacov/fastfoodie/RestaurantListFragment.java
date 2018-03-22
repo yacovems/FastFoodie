@@ -34,6 +34,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private ArrayList<RestaurantInfo> mRestaurantsList;
     private FragmentCommunication mCallback;
     private boolean hasChanged;
+    private SwipeController swipeController = null;
 
     @Nullable
     @Override
@@ -77,6 +78,33 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         mAdapter = new RestaurantListAdapter(mRestaurantsList, getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
+
+        // Swipe recyclerView items
+        swipeController = new SwipeController(new SwipeControllerActions() {
+
+            @Override
+            public void onLeftClicked(final int position) {
+                // Task start in one minute.
+                Toast.makeText(getContext(), "Task pending", Toast.LENGTH_SHORT).show();
+                removeItem(position);
+            }
+
+            @Override
+            public void onRightClicked(int position) {
+                // Task start immediately.
+                Toast.makeText(getContext(), "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
+                removeItem(position);
+            }
+        }, false, getResources());
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(mRecyclerView);
+
+        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
 
         mAdapter.setOnItemClickListener(new RestaurantListAdapter.OnItemClickListener() {
             @Override

@@ -26,40 +26,56 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:src="@drawable/walk"/>
+            android:background="@color/colorPrimary"/>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"/>
 
         <ImageButton
             android:id="@+id/cost"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:src="@drawable/cost"/>
+            android:background="@color/colorPrimary" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"/>
 
         <ImageButton
             android:id="@+id/rating"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:src="@drawable/star"/>
+            android:background="@color/colorPrimary" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"/>
 
         <ImageButton
             android:id="@+id/cuisine"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:src="@drawable/cuisine"/>
+            android:background="@color/colorPrimary" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"/>
 
         <ImageButton
             android:id="@+id/favorite"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:src="@drawable/favorite_border"/>
+            android:background="@color/colorPrimary" />
+
     </LinearLayout>
 
 </LinearLayout>

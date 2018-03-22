@@ -21,4 +21,8 @@ public interface FragmentCommunication {
     public void setMap(GoogleMap map);
     public LatLng getLatLng();
     public void setLatLng(LatLng position);
+    public void setCost(int cost);
+    public int getCost();
+    public void setRating(int rating);
+    public int getRating();
 }
