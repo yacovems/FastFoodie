@@ -16,10 +16,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
-        import android.widget.Button;
-        import android.widget.ImageButton;
         import android.widget.Toast;
-
         import java.util.ArrayList;
 
 /**
@@ -43,7 +40,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         View view = inflater.inflate(R.layout.restaurant_list_fragment,
                 container, false);
 
-        // Retrieve tasks lists from bundle
+        // Retrieve restaurant list from bundle
         Bundle data = getArguments();
         if (data != null) {getBundleArgs(data);}
 
@@ -84,15 +81,13 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
 
             @Override
             public void onLeftClicked(final int position) {
-                // Task start in one minute.
-                Toast.makeText(getContext(), "Task pending", Toast.LENGTH_SHORT).show();
-                removeItem(position);
             }
 
             @Override
             public void onRightClicked(int position) {
                 // Task start immediately.
-                Toast.makeText(getContext(), "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(),
+                        "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
                 removeItem(position);
             }
         }, false, getResources());
@@ -109,10 +104,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         mAdapter.setOnItemClickListener(new RestaurantListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-//                Intent intent = new Intent(getActivity(), CreateTaskActivity.class);
-//                intent.putExtra("position" ,position);
-//                intent.putParcelableArrayListExtra("completedList", mCompletedTaskList);
-//                startActivity(intent);
+
             }
 
             @Override
@@ -120,7 +112,6 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
                 RestaurantInfo restaurant = mRestaurantsList.get(position);
 
                 try {
-                    Log.d(TAG, "-------------------------> call btn was clicked. num is: " + restaurant.getPhoneNumber());
                     Intent callIntent = new Intent(Intent.ACTION_CALL);
                     callIntent.setData(Uri.parse("tel:" + restaurant.getPhoneNumber()));
                     startActivity(callIntent);
@@ -138,13 +129,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
 
     public void removeItem(int position) {
         RestaurantInfo restaurant = mRestaurantsList.get(position);
-        String n = restaurant.getName();
-        String c = restaurant.getCuisine();
-        String a = restaurant.getAddress();
 
         //Remove item from recycler view.
         mRestaurantsList.remove(position);
-//        mCallback.setCompletedTasks(mCompletedTaskList);
 
         // Update recycler view.
         mAdapter.notifyItemRemoved(position);

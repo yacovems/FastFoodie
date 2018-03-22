@@ -75,14 +75,10 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Log.d("Res list adapter", "-------------------------> call btn was clicked");
                     if (listener != null) {
-                        Log.d("Res list adapter", "Listener is not NULL!!");
                         int position = getAdapterPosition();
-                        Log.d("Res list adapter", "Adapter position: " + position);
                         if (position != RecyclerView.NO_POSITION) {
                             listener.onCallClick(position);
-                            Log.d("Res list adapter", "-------------------------> call btn was clicked");
                         }
                     }
                 }
@@ -91,7 +87,6 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             favorite.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Log.d("Res list adapter", "-------------------------> favorite btn was clicked");
                     favorite.setBackgroundResource(R.drawable.favorite);
                     if (listener != null) {
                         int position = getAdapterPosition();

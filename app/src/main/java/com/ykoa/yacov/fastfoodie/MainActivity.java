@@ -1,17 +1,10 @@
 package com.ykoa.yacov.fastfoodie;
 
 import android.app.Activity;
-import android.app.LauncherActivity;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ScaleDrawable;
 import android.os.Bundle;
-import android.text.Layout;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
@@ -25,21 +18,13 @@ import android.view.MenuItem;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
-import android.widget.Toast;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -279,12 +264,12 @@ public class MainActivity extends AppCompatActivity implements
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             layout = layoutInflater.inflate(R.layout.cuisine_popup_layout, viewGroup);
 
-            cuisineSpinner = (Spinner) findViewById(R.id.spinner);
-            // Create an ArrayAdapter using the string array and a default spinner layout
-            adapter = ArrayAdapter.createFromResource(this,
-                    R.array.cuisine_array, android.R.layout.simple_spinner_item);
-            // Specify the layout to use when the list of choices appears
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//            cuisineSpinner = (Spinner) findViewById(R.id.spinner);
+//            // Create an ArrayAdapter using the string array and a default spinner layout
+//            adapter = ArrayAdapter.createFromResource(this,
+//                    R.array.cuisine_array, android.R.layout.simple_spinner_item);
+//            // Specify the layout to use when the list of choices appears
+//            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         }
 
         // Creating the PopupWindow
@@ -296,9 +281,9 @@ public class MainActivity extends AppCompatActivity implements
         popup.setFocusable(true);
 
         // Apply the adapter to the spinner
-        if (adapter != null) {
-            cuisineSpinner.setAdapter(adapter);
-        }
+//        if (adapter != null) {
+//            cuisineSpinner.setAdapter(adapter);
+//        }
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 10);
     }
@@ -306,8 +291,8 @@ public class MainActivity extends AppCompatActivity implements
     private void setupViewPager(ViewPager viewPager) {
         final SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
 
-        // Send parcel with task list data to both
-        // map and restaurant list fragments
+        // Send parcel with restaurants list to
+        // the restaurant list fragments
 
         MVF = new MapViewFragment();
         Bundle b = new Bundle();
@@ -319,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements
         RLF.setArguments(b2);
 
         adapter.addFragment(MVF, "Map");
-        adapter.addFragment(RLF, "List");
+        adapter.addFragment(RLF, "Venues");
         viewPager.setAdapter(adapter);
 
         // Instead of recreating the activity, notify the adapter when
