@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -34,7 +35,7 @@ public class SwipeController extends Callback{
     private RectF buttonInstance = null;
     private RecyclerView.ViewHolder currentItemViewHolder = null;
     private SwipeControllerActions buttonsActions = null;
-    private static final float buttonWidth = 400;
+    private static final float buttonWidth = 200;
     private boolean favorite;
     private Resources resources;
 
@@ -167,46 +168,37 @@ public class SwipeController extends Callback{
     }
 
     private void drawButtons(Canvas c, RecyclerView.ViewHolder viewHolder) {
-        float buttonWidthWithoutPadding = buttonWidth - 20;
         float corners = 5;
 
         View itemView = viewHolder.itemView;
         Paint p = new Paint();
 
-        // Right and left buttons.
-        RectF leftButton = new RectF(itemView.getLeft(), itemView.getTop(),
-                itemView.getLeft() + buttonWidthWithoutPadding, itemView.getBottom());
-
-        p.setColor(Color.RED);
-        c.drawRoundRect(leftButton, corners, corners, p);
-
-        RectF rightButton = new RectF(itemView.getRight() - buttonWidthWithoutPadding,
+        // Draw button's background
+        RectF rightButton = new RectF(itemView.getRight() - buttonWidth,
                 itemView.getTop(), itemView.getRight(), itemView.getBottom());
         p.setColor(Color.RED);
         c.drawRoundRect(rightButton, corners, corners, p);
 
+        // Draw delete icon
         Drawable drawable = resources.getDrawable(R.drawable.delete);
-        Bitmap icon = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        c.drawBitmap(icon, itemView.getLeft(), itemView.getTop(), p);
 
+        // Calculate position of delete icon
+        int itemHeight = itemView.getBottom() - itemView.getTop();
+        int intrinsicWidth = drawable.getIntrinsicWidth();
+        int intrinsicHeight = drawable.getIntrinsicHeight();
+
+        int deleteIconTop = itemView.getTop() + (itemHeight/2) - intrinsicHeight;
+        int deleteIconLeft = itemView.getRight() - ((int)buttonWidth/2) - intrinsicWidth ;
+        int deleteIconRight = itemView.getRight() - ((int)buttonWidth/2) + intrinsicWidth;
+        int deleteIconBottom = itemView.getTop() + (itemHeight/2) + intrinsicHeight;
+
+        drawable.setBounds(deleteIconLeft, deleteIconTop, deleteIconRight, deleteIconBottom);
+        drawable.draw(c);
 
         buttonInstance = null;
-        if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
-            buttonInstance = leftButton;
-        }
-        else if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
+        if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
             buttonInstance = rightButton;
         }
-    }
-
-    private void drawText(String text, Canvas c, RectF button, Paint p) {
-        float textSize = 45;
-        p.setColor(Color.BLACK);
-        p.setAntiAlias(true);
-        p.setTextSize(textSize);
-        float textWidth = p.measureText(text);
-        c.drawText(text, button.centerX()-(textWidth/2), button.centerY()+(textSize/2), p);
-        c.drawText(text, button.centerX()-(textWidth/2), button.centerY()+(textSize/2), p);
     }
 
     public void onDraw(Canvas c) {
