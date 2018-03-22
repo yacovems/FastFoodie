@@ -184,7 +184,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         Circle circle = mMap.addCircle(new CircleOptions()
                 .center(point)
                 .radius(searchRadius)
-                .strokeColor(Color.rgb(102,93,163))
+                .strokeColor(Color.rgb(102,40,0))
                 .fillColor(Color.TRANSPARENT));
     }
 

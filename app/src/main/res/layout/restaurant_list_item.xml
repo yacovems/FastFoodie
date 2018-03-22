@@ -19,7 +19,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:padding="2dp"
-            android:src="@drawable/logo"/>
+            android:background="@color/white"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -86,16 +86,14 @@
                 android:id="@+id/call"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/call"
-                android:backgroundTint="@color/white"
+                android:padding="10dp"
                 android:layout_toLeftOf="@+id/favorite"/>
 
             <ImageButton
                 android:id="@+id/favorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/favorite_border"
-                android:backgroundTint="@color/white"
+                android:padding="10dp"
                 android:layout_alignParentEnd="true"/>
 
             <TextView

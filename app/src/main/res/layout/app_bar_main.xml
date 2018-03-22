@@ -12,8 +12,7 @@
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        android:background="@color/purple">
+        android:theme="@style/AppTheme">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -28,13 +27,30 @@
             app:contentInsetRight="0dp"
             app:contentInsetEnd="0dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FastFoodie"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:fontFamily="Ubuntu"/>
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="150dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/fast_foodie_logo"/>
+
+                <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="FastFoodie"-->
+                    <!--android:textStyle="bold"-->
+                    <!--android:textSize="20sp"-->
+                    <!--android:paddingLeft="5dp"-->
+                    <!--android:layout_gravity="center_vertical"-->
+                    <!--android:textColor="@color/colorAccent"-->
+                    <!--android:fontFamily="Ubuntu"/>-->
+
+            </LinearLayout>
+
 
         </android.support.v7.widget.Toolbar>
 
@@ -62,6 +78,7 @@
                 android:text="@string/tab_text_3" />
 
         </android.support.design.widget.TabLayout>
+
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_main" />

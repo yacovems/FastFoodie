@@ -66,8 +66,11 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             img = itemView.findViewById(R.id.restaurant_img);
             reviewCount = itemView.findViewById(R.id.review_count);
             call = itemView.findViewById(R.id.call);
+            call.setBackgroundResource(R.drawable.call);
+
             favorite = itemView.findViewById(R.id.favorite);
             favorite.setBackgroundResource(R.drawable.favorite_border);
+
 
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -153,34 +156,6 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
         holder.distance.setText(currItem.getDistance() + " miles");
         holder.rating.setImageBitmap(image);
         holder.reviewCount.setText(currItem.getReviewCount() + " reviews");
-    }
-
-    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-
-        ViewHolder holder;
-        int position;
-        DownloadImageTask(ViewHolder holder, int position) {
-            this.holder = holder;
-            this.position = position;
-        }
-
-        protected Bitmap doInBackground(String... address) {
-            Bitmap image = null;
-            try {
-                URL url = new URL(address[0]);
-                image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return image;
-        }
-
-        protected void onPostExecute(Bitmap result) {
-            holder.img.setImageBitmap(result);
-        }
     }
 
     @Override

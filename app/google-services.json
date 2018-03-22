@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "260787072902",
+    "firebase_url": "https://fastfoodie-1520455012729.firebaseio.com",
+    "project_id": "fastfoodie-1520455012729",
+    "storage_bucket": "fastfoodie-1520455012729.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260787072902:android:b1656067215f9369",
+        "android_client_info": {
+          "package_name": "com.ykoa.yacov.fastfoodie"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "260787072902-h6kj1g8jfrtqh6tlaobuo23gcicca8di.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3xONiH-DFLcqjgbatmmeUdQZbKglIUWA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

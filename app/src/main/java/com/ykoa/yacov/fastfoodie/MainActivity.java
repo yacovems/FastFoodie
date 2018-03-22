@@ -1,11 +1,16 @@
 package com.ykoa.yacov.fastfoodie;
 
 import android.app.Activity;
+import android.app.LauncherActivity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -30,19 +35,22 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         FragmentCommunication {
 
     private static final String TAG = "MainActivity";
+    private final int DEFAULT_SEARCH_RADIUS = 500;
+    private int searchRadius = DEFAULT_SEARCH_RADIUS;
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
     private ImageButton[] filterButtons;
     private int buttonsID;
-    private int searchRadius = 4000;
     private Spinner cuisineSpinner;
     private ArrayAdapter<CharSequence> adapter;
     private boolean hasChanged;
@@ -50,6 +58,9 @@ public class MainActivity extends AppCompatActivity
     private RestaurantListFragment RLF = null;
     private MapViewFragment MVF = null;
     private LatLng deviceLocation = null;
+    private HashMap<String, RestaurantInfo> favoriteList = null;
+    private String userName;
+    private String userImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +69,12 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+
+        // Get user info from Facebook initial login
+        Intent previousIntent = getIntent();
+        Log.d(TAG, "------- Entered MainActivity from LoginActivity");
+        userName = previousIntent.getStringExtra("user_name");
+        userImage = previousIntent.getStringExtra("user_image");
 
         // Initialize filter buttons
         buttons();
@@ -71,7 +87,13 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setItemIconTintList(null);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // Set nav drawer user info
+        Menu navMenu = navigationView.getMenu();
+        navMenu.getItem(0).setTitle(userName);
+        new DownloadImageTask(navigationView.getMenu(), getResources()).execute(userImage);
 
         // Initialize array list of restaurants.
         mRestaurantList = new ArrayList<>();
