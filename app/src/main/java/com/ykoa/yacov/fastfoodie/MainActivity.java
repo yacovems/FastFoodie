@@ -44,7 +44,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, FragmentCommunication {
+public class MainActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener,
+        FragmentCommunication {
 
     private static final String TAG = "MainActivity";
 
@@ -52,12 +54,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private final int DEFAULT_SEARCH_RADIUS = 500;
     private final int DEFAULT_SEARCH_COST = 4;
     private final int DEFAULT_SEARCH_RATING = 1;
+    private final int NUM_FILTER_BUTTONS = 5;
+    private final int NUM_POPUP_BUTTONS = 11;
 
     private int searchRadius = DEFAULT_SEARCH_RADIUS;
     private int searchCost = DEFAULT_SEARCH_COST;
     private int searchRating = DEFAULT_SEARCH_RATING;
 
-    private PopupWindow popup;
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
     private ImageButton[] filterButtons;
@@ -74,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private HashMap<String, RestaurantInfo> forbidden = null;
     private String userName;
     private String userImage;
+    private PopupWindow popup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,17 +89,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Get user info from Facebook initial login
         Intent previousIntent = getIntent();
-        Log.d(TAG, "------- Entered MainActivity from LoginActivity");
         userName = previousIntent.getStringExtra("user_name");
         userImage = previousIntent.getStringExtra("user_image");
 
-        // Initialize filter buttons
+        // Create filter buttons
         buttons();
 
         // Set navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -106,7 +110,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Set nav drawer user info
         Menu navMenu = navigationView.getMenu();
         navMenu.getItem(0).setTitle(userName);
-        new DownloadImageTask(navigationView.getMenu(), getResources()).execute(userImage);
+        new DownloadImageTask(navigationView.getMenu(),
+                getResources()).execute(userImage);
 
         // Initialize array list of restaurants.
         mRestaurantList = new ArrayList<>();
@@ -121,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void buttons() {
         // 5 filter buttons
-        filterButtons = new ImageButton[5];
+        filterButtons = new ImageButton[NUM_FILTER_BUTTONS];
 
         ImageButton b = (ImageButton) findViewById(R.id.distance);
         Drawable d = getResources().getDrawable(R.drawable.walk);
@@ -129,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         b = (ImageButton) findViewById(R.id.cost);
         d = getResources().getDrawable(R.drawable.cost);
-        makeFilterButton(d, b,1, 5);
+        makeFilterButton(d, b,1, 4);
 
         b = (ImageButton) findViewById(R.id.rating);
         d = getResources().getDrawable(R.drawable.star);
@@ -154,22 +159,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 filterBtnID = buttonNum;
                 int[] location = new int[2];
-                filterButtons[filterBtnID].getLocationOnScreen(location);
+                filterButtons[buttonNum].getLocationOnScreen(location);
                 showPopup(MainActivity.this, location[0], location[1],
-                        filterButtons[buttonNum].getWidth(), filterButtons[buttonNum].getHeight(), size);
+                        filterButtons[buttonNum].getWidth(),
+                        filterButtons[buttonNum].getHeight(), size);
             }
         });
     }
 
     private void makePopupButton(final int radius,
-                                 final int cost, final int rating, int buttonNum,
+                                 final int cost, final int rating, final int buttonNum,
                                  ImageButton button, final Drawable drawable) {
-
-        if (drawable == null) {
-            Log.d(TAG, "--------------------->>>>>> noooooooooooo " + buttonNum);
-        } else if (button == null) {
-            Log.d(TAG, "--------------------->>>>>> noooooooooooo2 " + buttonNum);
-        }
 
         popupButtons[buttonNum] = button;
         popupButtons[buttonNum].setImageDrawable(drawable);
@@ -177,6 +177,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View v) {
                 popup.dismiss();
+
+                // Removes everything off the map
+                // and looks for adjusted search parameters
                 if (radius != 0) {setRadius(radius);}
                 if (cost != 0) {setCost(cost);}
                 if (rating != 0) {setRating(rating);}
@@ -190,13 +193,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 filterButtons[filterBtnID].setImageDrawable(drawable);
             }
         });
-
     }
 
     // The method that displays the popup.
-    private void showPopup(final Activity context, int x, int y, int width, int height, int btnNumber) {
+    private void showPopup(final Activity context, int x, int y, int width, int height, int size) {
+
         int popupWidth = width;
-        int popupHeight = height * btnNumber;
+        int popupHeight = height * size;
 
         // Inflate the popup_layout.xml
         LinearLayout viewGroup = null;
@@ -206,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Drawable d = null;
 
         // 11 popup buttons
-        popupButtons = new ImageButton[11];
+        popupButtons = new ImageButton[NUM_POPUP_BUTTONS];
 
         if (filterBtnID == 0) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup0);
@@ -216,11 +219,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             b = (ImageButton) layout.findViewById(R.id.driveD);
             d = getResources().getDrawable(R.drawable.drive);
-            makePopupButton(500, 0, 0, 0, b, d);
+            makePopupButton(DEFAULT_SEARCH_RADIUS * 2, 0, 0, 0, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.walkD);
             d = getResources().getDrawable(R.drawable.walk);
-            makePopupButton(1000, 0, 0, 1, b, d);
+            makePopupButton(DEFAULT_SEARCH_RADIUS, 0, 0, 1, b, d);
 
         } else if (filterBtnID == 1) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup1);
@@ -298,10 +301,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 10);
-    }
-    
-    private void makeLayout() {
-        
     }
 
     private void setupViewPager(ViewPager viewPager) {

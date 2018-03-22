@@ -12,6 +12,8 @@ package com.ykoa.yacov.fastfoodie;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.FrameLayout;
+        import android.widget.TextView;
+
         import com.google.android.gms.maps.GoogleMap;
         import com.google.android.gms.maps.OnMapReadyCallback;
         import com.google.android.gms.maps.SupportMapFragment;
@@ -37,6 +39,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     private static final String TAG = "MapViewFragment";
     private FragmentCommunication mCallback;
     private int searchRadius;
+    private int searchCost;
+    private int searchRating;
     GoogleMapsAPI mMapAPI;
     GoogleMap mMap;
     Location location = null;
@@ -51,7 +55,6 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         // Retrieve tasks lists from bundle
 //        Bundle data = getArguments();
 //        if (data != null) {getBundleArgs(data);}
-
         searchRadius = mCallback.getRadius();
 
         // Create a map
@@ -104,7 +107,11 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 View infoWindow = getActivity().getLayoutInflater().inflate(R.layout.custom_info_contents,
                         (FrameLayout) getActivity().findViewById(R.id.map), false);
 
+                TextView title = ((TextView) infoWindow.findViewById(R.id.title));
+                title.setText(marker.getTitle());
 
+                TextView snippet = ((TextView) infoWindow.findViewById(R.id.snippet));
+                snippet.setText(marker.getSnippet());
 
                 return infoWindow;
             }
@@ -189,25 +196,45 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         private void showNearbyPlaces(List<HashMap<String, String>> hm) {
 
             Log.d("showNearByPlaces", "size of near by places list ------> " + hm.size());
+            searchCost = mCallback.getCost();
+            searchRating = mCallback.getRating();
 
+            // Create arrayList of restaurants
             ArrayList<RestaurantInfo> list =  new ArrayList<>();
 
             for (int i = 0; i < hm.size(); i++) {
                 MarkerOptions markerOptions = new MarkerOptions();
                 HashMap<String, String> place = hm.get(i);
                 if (place.get("lat") == null || place.get("lng") == null || place.get("rating") == null) {continue;}
-                String status = place.get("is_closed");
-                if (status.equals("closed")) {continue;}
+
+                // If outside the search radius
                 String distance = place.get("distance");
                 if (Double.parseDouble(distance) > searchRadius) {continue;}
+
+                // If not open at the moment
+                String status = place.get("is_closed");
+                if (status.equals("closed")) {continue;}
+
+                // If over the search cost
+                String cost = place.get("cost");
+                int cInt = 0;
+                if (cost.equals("$")) {cInt = 1;}
+                else if (cost.equals("$$")) {cInt = 2;}
+                else if (cost.equals("$$$")) {cInt = 3;}
+                else if (cost.equals("$$$$")) {cInt = 4;}
+                if (cInt > searchCost) {continue;}
+
+                // If below the search rating
+                double rating = Double.parseDouble(place.get("rating"));
+                if (rating < searchRating) {continue;}
+
+                // Rest of restaurant info
                 DecimalFormat value = new DecimalFormat("#.#");
                 String d = value.format(Double.parseDouble(distance) / 1609.344);
                 double lat = Double.parseDouble(place.get("lat"));
                 double lng = Double.parseDouble(place.get("lng"));
                 String placeName = place.get("name");
                 String address = place.get("address");
-                double rating = Double.parseDouble(place.get("rating"));
-                String cost = place.get("cost");
                 String cuisine = place.get("cuisine");
                 String imgURL = place.get("image");
                 String reviewCount = place.get("review_count");
@@ -216,7 +243,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 // Create a restaurant object
                 list.add(new RestaurantInfo(placeName, address, phoneNum, cuisine, rating, cost, d, imgURL, reviewCount));
 
-                // Create marker for the map
+                // Create marker on the map
                 LatLng latLng = new LatLng(lat, lng);
                 markerOptions.position(latLng);
                 markerOptions.title(placeName + " - " + cuisine + " - " + rating);
@@ -384,5 +411,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     @Override
     public void fragmentBecameVisible() {
         searchRadius = mCallback.getRadius();
+        searchCost = mCallback.getCost();
+        searchRating = mCallback.getRating();
     }
 }
