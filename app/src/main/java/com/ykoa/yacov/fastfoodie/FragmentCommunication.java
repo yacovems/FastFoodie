@@ -4,6 +4,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Created by Yacov on 3/10/2018.
@@ -25,4 +28,10 @@ public interface FragmentCommunication {
     public int getCost();
     public void setRating(int rating);
     public int getRating();
+    public HashMap<String, String> getFavorites();
+    public void setFavorites(HashMap<String, String> favorites);
+    public HashMap<String, String> getForbidden();
+    public void setForbidden(HashMap<String, String> forbidden);
+    public String getUserId();
+    public void updateDB(HashMap<String, Object> user);
 }

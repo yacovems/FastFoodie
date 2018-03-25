@@ -17,7 +17,14 @@ package com.ykoa.yacov.fastfoodie;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.Toast;
+
+        import com.google.android.gms.maps.model.LatLng;
+        import com.google.android.gms.tasks.OnSuccessListener;
+        import com.google.firebase.firestore.FirebaseFirestore;
+
         import java.util.ArrayList;
+        import java.util.HashMap;
+        import java.util.HashSet;
 
 /**
  * Created by yacov on 3/7/2018.
@@ -32,6 +39,8 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private FragmentCommunication mCallback;
     private boolean hasChanged;
     private SwipeController swipeController = null;
+    private HashMap<String, String> favorites = null;
+    private HashMap<String, String> forbidden = null;
 
     @Nullable
     @Override
@@ -123,12 +132,38 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             @Override
             public void onFavoriteClick(int position) {
 
+                HashMap<String, Object> user = new HashMap<>();
+                RestaurantInfo restaurant = mRestaurantsList.get(position);
+
+                if (restaurant.getIsFavorite()) {
+                    // Remove restaurant from favorites
+                    // and update Firebase
+                    restaurant.setIsFavorite(false);
+                    favorites.remove(restaurant.getId());
+                    user.put("favorites", favorites);
+                    mCallback.updateDB(user);
+
+                } else {
+                    // Add restaurant to favorites
+                    // and update Firebase
+                    restaurant.setIsFavorite(true);
+                    favorites.put(restaurant.getId(), restaurant.getName());
+                    user.put("favorites", favorites);
+                    mCallback.updateDB(user);
+                }
             }
         });
     }
 
     public void removeItem(int position) {
         RestaurantInfo restaurant = mRestaurantsList.get(position);
+
+        // Add restaurant to forbidden
+        // and update Firebase\
+        HashMap<String, Object> user = new HashMap<>();
+        forbidden.put(restaurant.getId(), restaurant.getName());
+        user.put("forbidden", forbidden);
+        mCallback.updateDB(user);
 
         //Remove item from recycler view.
         mRestaurantsList.remove(position);
@@ -140,11 +175,13 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     @Override
     public void fragmentBecameVisible() {
         // Update
+        favorites = mCallback.getFavorites();
+        forbidden = mCallback.getForbidden();
         hasChanged = mCallback.getHasChanged();
         mRestaurantsList = mCallback.getRestaurantList();
         if (hasChanged) {
-            mAdapter = new RestaurantListAdapter(mRestaurantsList, getContext());
-            mRecyclerView.setAdapter(mAdapter);
+            buildRecyclerView(getView());
+            hasChanged = false;
         }
     }
 }

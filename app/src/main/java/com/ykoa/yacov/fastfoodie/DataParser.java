@@ -53,6 +53,9 @@ public class DataParser {
     private HashMap<String, String> getPlace(JSONObject restaurantJSON) {
         HashMap<String, String> place = new HashMap<String, String>();
         try {
+            // Get id
+            String id = restaurantJSON.getString("id");
+
             // Get name
             String name = restaurantJSON.getString("name");
 
@@ -114,6 +117,7 @@ public class DataParser {
             place.put("image", img);
             place.put("review_count", "" + reviewCount);
             place.put("is_closed", status);
+            place.put("id", id);
 
         } catch (JSONException e) {
             e.printStackTrace();

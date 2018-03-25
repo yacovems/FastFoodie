@@ -25,7 +25,7 @@ public class InternalStorageOps {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             while ((message = bufferedReader.readLine()) != null) {
                 if (!message.equals("")){
-                    stringBuffer.append(message + "\n");
+                    stringBuffer.append(message);
                 }
             }
             inputStreamReader.close();

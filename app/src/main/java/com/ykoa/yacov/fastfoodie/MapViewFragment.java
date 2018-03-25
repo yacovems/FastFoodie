@@ -27,6 +27,7 @@ package com.ykoa.yacov.fastfoodie;
         import java.text.DecimalFormat;
         import java.util.ArrayList;
         import java.util.HashMap;
+        import java.util.HashSet;
         import java.util.List;
 
 /**
@@ -41,6 +42,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     private int searchRadius;
     private int searchCost;
     private int searchRating;
+    private HashMap<String, String> favorites = null;
+    private HashMap<String, String> forbidden = null;
     GoogleMapsAPI mMapAPI;
     GoogleMap mMap;
     Location location = null;
@@ -202,6 +205,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             Log.d("showNearByPlaces", "size of near by places list ------> " + hm.size());
             searchCost = mCallback.getCost();
             searchRating = mCallback.getRating();
+            favorites = mCallback.getFavorites();
+            forbidden = mCallback.getForbidden();
 
             // Create arrayList of restaurants
             ArrayList<RestaurantInfo> list =  new ArrayList<>();
@@ -243,9 +248,24 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 String imgURL = place.get("image");
                 String reviewCount = place.get("review_count");
                 String phoneNum = place.get("phone");
+                String id = place.get("id");
+
+                // Check if current restaurant is in
+                // the user's favorites or forbidden
+
+                if (forbidden.containsKey(id)) {
+                    Log.d(TAG, "------------> THIS RESTAURANT IS FORBIDDEN!!!!");
+                    continue;
+                }
+
+                boolean isFavorite = false;
+                if (favorites.containsKey(id)) {
+                    Log.d(TAG, "------------> THIS RESTAURANT IS A FAVORITE!!!!");
+                    isFavorite = true;
+                }
 
                 // Create a restaurant object
-                list.add(new RestaurantInfo(placeName, address, phoneNum, cuisine, rating, cost, d, imgURL, reviewCount));
+                list.add(new RestaurantInfo(placeName, address, phoneNum, cuisine, rating, cost, d, imgURL, reviewCount, isFavorite, id));
 
                 // Create marker on the map
                 LatLng latLng = new LatLng(lat, lng);
@@ -271,6 +291,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
     @Override
     public void fragmentBecameVisible() {
+        favorites = mCallback.getFavorites();
+        forbidden = mCallback.getForbidden();
         searchRadius = mCallback.getRadius();
         searchCost = mCallback.getCost();
         searchRating = mCallback.getRating();

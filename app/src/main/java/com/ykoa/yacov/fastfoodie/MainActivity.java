@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
@@ -25,9 +27,26 @@ import android.widget.PopupWindow;
 import android.widget.Spinner;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -41,10 +60,12 @@ public class MainActivity extends AppCompatActivity implements
     private final int DEFAULT_SEARCH_RATING = 1;
     private final int NUM_FILTER_BUTTONS = 5;
     private final int NUM_POPUP_BUTTONS = 11;
+    private final String DEFAULT_SEARCH_CUISINE = "All";
 
     private int searchRadius = DEFAULT_SEARCH_RADIUS;
     private int searchCost = DEFAULT_SEARCH_COST;
     private int searchRating = DEFAULT_SEARCH_RATING;
+    private String searchCuisine = DEFAULT_SEARCH_CUISINE;
 
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
@@ -58,11 +79,18 @@ public class MainActivity extends AppCompatActivity implements
     private RestaurantListFragment RLF = null;
     private MapViewFragment MVF = null;
     private LatLng deviceLocation = null;
-    private HashMap<String, RestaurantInfo> favorites = null;
-    private HashMap<String, RestaurantInfo> forbidden = null;
+    private HashMap<String, String> favorites = null;
+    private HashMap<String, String> forbidden = null;
     private String userName;
     private String userImage;
+    private String userEmail;
+    private String userId;
     private PopupWindow popup;
+    private InternalStorageOps iso;
+    private NavigationView navigationView;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,31 +100,20 @@ public class MainActivity extends AppCompatActivity implements
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
+
+        iso = new InternalStorageOps();
         // Get user info from Facebook initial login
-        Intent previousIntent = getIntent();
-        userName = previousIntent.getStringExtra("user_name");
-        userImage = previousIntent.getStringExtra("user_image");
+//        Bundle bundle = this.getIntent().getExtras();
+//        if (bundle != null) {getBundleExtras(bundle);}
 
         // Create filter buttons
-        buttons();
+        setUpFilterButtons();
 
         // Set navigation drawer
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+        setUpNavDrawer(toolbar);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setItemIconTintList(null);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        // Set nav drawer user info
-        Menu navMenu = navigationView.getMenu();
-        navMenu.getItem(0).setTitle(userName);
-        new DownloadImageTask(navigationView.getMenu(),
-                getResources()).execute(userImage);
+        // Get user info
+        getUserInfo();
 
         // Initialize array list of restaurants.
         mRestaurantList = new ArrayList<>();
@@ -109,7 +126,58 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout.setupWithViewPager(mViewPager);
     }
 
-    public void buttons() {
+    // Get user data from Firebase DB
+    private void getUserInfo() {
+
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            userId = iso.readFile(getApplicationContext(), "login_info").toString();
+
+                            for (DocumentSnapshot userDoc : task.getResult()) {
+                                if (userId.equals(userDoc.getId())){
+
+                                    userName = userDoc.getData().get("full name").toString();
+                                    userImage = userDoc.getData().get("picture").toString();
+                                    userEmail = userDoc.getData().get("email").toString();
+                                    searchCost = Integer.parseInt(userDoc.getData().get("cost").toString());
+                                    searchRadius = Integer.parseInt(userDoc.getData().get("distance").toString());
+                                    searchRating = Integer.parseInt(userDoc.getData().get("rating").toString());
+                                    searchCuisine = userDoc.getData().get("cuisine").toString();
+                                    favorites = (HashMap<String, String>) userDoc.getData().get("favorites");
+                                    forbidden = (HashMap<String, String>) userDoc.getData().get("forbidden");
+
+                                    // Set nav drawer user info
+                                    Menu navMenu = navigationView.getMenu();
+                                    navMenu.getItem(0).setTitle(userName);
+                                    new DownloadImageTask(navigationView.getMenu(),
+                                            getResources()).execute(userImage);
+                                }
+                            }
+                        } else {
+                            Log.w(TAG, "Error getting documents.", task.getException());
+                        }
+                    }
+                });
+    }
+
+    private void setUpNavDrawer(Toolbar toolbar) {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setItemIconTintList(null);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void setUpFilterButtons() {
         // 5 filter buttons
         filterButtons = new ImageButton[NUM_FILTER_BUTTONS];
 
@@ -118,11 +186,11 @@ public class MainActivity extends AppCompatActivity implements
         makeFilterButton(d, b,0, 2);
 
         b = (ImageButton) findViewById(R.id.cost);
-        d = getResources().getDrawable(R.drawable.cost);
+        d = getResources().getDrawable(R.drawable.ic_4_dollar);
         makeFilterButton(d, b,1, 4);
 
         b = (ImageButton) findViewById(R.id.rating);
-        d = getResources().getDrawable(R.drawable.star);
+        d = getResources().getDrawable(R.drawable.ic_1_star);
         makeFilterButton(d, b, 2, 5);
 
         b = (ImageButton) findViewById(R.id.cuisine);
@@ -169,6 +237,14 @@ public class MainActivity extends AppCompatActivity implements
                 if (cost != 0) {setCost(cost);}
                 if (rating != 0) {setRating(rating);}
 
+                // Send info to Firebase DB
+                HashMap<String, Object> user = new HashMap<>();
+                user.put("cost", searchCost);
+                user.put("rating", searchRating);
+                user.put("distance", searchRadius);
+                updateDB(user);
+
+                // Draw new circle and find restaurants nearby
                 MVF.drawCircle(deviceLocation);
                 try {
                     MVF.findNearByRestaurants(deviceLocation);
@@ -217,19 +293,19 @@ public class MainActivity extends AppCompatActivity implements
             layout = layoutInflater.inflate(R.layout.cost_popup_layout, viewGroup);
 
             b = (ImageButton) layout.findViewById(R.id.dollarSign4);
-            d = getResources().getDrawable(R.drawable.cost);
+            d = getResources().getDrawable(R.drawable.ic_4_dollar);
             makePopupButton(0, 4, 0, 2, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.dollarSign3);
-            d = getResources().getDrawable(R.drawable.cost);
+            d = getResources().getDrawable(R.drawable.ic_3_dollar);
             makePopupButton(0, 3, 0, 3, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.dollarSign2);
-            d = getResources().getDrawable(R.drawable.cost);
+            d = getResources().getDrawable(R.drawable.ic_2_dollar);
             makePopupButton(0, 2, 0, 4, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.dollarSign);
-            d = getResources().getDrawable(R.drawable.cost);
+            d = getResources().getDrawable(R.drawable.ic_1_dollar);
             makePopupButton(0, 1, 0, 5, b, d);
 
         } else if (filterBtnID == 2) {
@@ -239,23 +315,23 @@ public class MainActivity extends AppCompatActivity implements
             layout = layoutInflater.inflate(R.layout.rating_popup_layout, viewGroup);
 
             b = (ImageButton) layout.findViewById(R.id.star5);
-            d = getResources().getDrawable(R.drawable.star);
+            d = getResources().getDrawable(R.drawable.ic_5_star);
             makePopupButton(0, 0, 5, 6, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.star4);
-            d = getResources().getDrawable(R.drawable.star);
+            d = getResources().getDrawable(R.drawable.ic_4_star);
             makePopupButton(0, 0, 4, 7, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.star3);
-            d = getResources().getDrawable(R.drawable.star);
+            d = getResources().getDrawable(R.drawable.ic_3_star);
             makePopupButton(0, 0, 3, 8, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.star2);
-            d = getResources().getDrawable(R.drawable.star);
+            d = getResources().getDrawable(R.drawable.ic_2_star);
             makePopupButton(0, 0, 2, 9, b, d);
 
             b = (ImageButton) layout.findViewById(R.id.star);
-            d = getResources().getDrawable(R.drawable.star);
+            d = getResources().getDrawable(R.drawable.ic_1_star);
             makePopupButton(0, 0, 1, 10, b, d);
 
         } else if (filterBtnID == 3) {
@@ -422,5 +498,42 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public int getRating() {
         return searchRating;
+    }
+
+    @Override
+    public HashMap<String, String> getFavorites() {
+        return favorites;
+    }
+
+    @Override
+    public void setFavorites(HashMap<String, String> favorites) {
+        this.favorites = favorites;
+    }
+
+    @Override
+    public HashMap<String, String> getForbidden() {
+        return forbidden;
+    }
+
+    @Override
+    public void setForbidden(HashMap<String, String> forbidden) {
+        this.forbidden = forbidden;
+    }
+
+    @Override
+    public String getUserId() {
+        return userId;
+    }
+
+    @Override
+    public void updateDB(HashMap<String, Object> user) {
+        db.collection("users").document(userId)
+                .update(user)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "Update Cloud Firestore successfully");
+                    }
+                });
     }
 }

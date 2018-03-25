@@ -22,11 +22,15 @@ public class RestaurantInfo implements Parcelable{
     private String distance;
     private String reviewCount;
     private boolean isFavorite;
+    private String id;
 
 
     public RestaurantInfo() {}
 
-    public RestaurantInfo(String name, String address, String phoneNumber, String cuisine, double rating, String cost, String distance, String img, String reviewCount) {
+    public RestaurantInfo(String name, String address, String phoneNumber,
+                          String cuisine, double rating, String cost,
+                          String distance, String img, String reviewCount,
+                          boolean isFavorite, String id) {
 
         this.name = name;
         this.address = address;
@@ -37,6 +41,8 @@ public class RestaurantInfo implements Parcelable{
         this.distance = distance;
         this.img = img;
         this.reviewCount = reviewCount;
+        this.isFavorite = isFavorite;
+        this.id = id;
     }
 
     public String getName() {
@@ -73,6 +79,12 @@ public class RestaurantInfo implements Parcelable{
 
     public void setIsFavorite(boolean isFavorite) {this.isFavorite = isFavorite;}
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {return id;}
+
     @Override
     public int describeContents() {
         return 0;
@@ -88,7 +100,6 @@ public class RestaurantInfo implements Parcelable{
         this.distance = in.readString();
         this.img = in.readString();
         this.img = in.readString();
-
     }
 
     @Override
@@ -104,7 +115,8 @@ public class RestaurantInfo implements Parcelable{
         out.writeString(reviewCount);
     }
 
-    public static final Parcelable.Creator<RestaurantInfo> CREATOR = new Parcelable.Creator<RestaurantInfo>() {
+    public static final Parcelable.Creator<RestaurantInfo> CREATOR =
+            new Parcelable.Creator<RestaurantInfo>() {
         public RestaurantInfo createFromParcel(Parcel in) {
             return new RestaurantInfo(in);
         }
