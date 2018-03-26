@@ -16,6 +16,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
+        import android.widget.ProgressBar;
         import android.widget.Toast;
 
         import com.google.android.gms.maps.model.LatLng;
@@ -37,10 +38,10 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private RestaurantListAdapter mAdapter;
     private ArrayList<RestaurantInfo> mRestaurantsList;
     private FragmentCommunication mCallback;
-    private boolean hasChanged;
     private SwipeController swipeController = null;
     private HashMap<String, String> favorites = null;
     private HashMap<String, String> forbidden = null;
+    private ProgressBar mProgressBar;
 
     @Nullable
     @Override
@@ -49,11 +50,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         View view = inflater.inflate(R.layout.restaurant_list_fragment,
                 container, false);
 
-        // Retrieve restaurant list from bundle
-        Bundle data = getArguments();
-        if (data != null) {getBundleArgs(data);}
-
-        buildRecyclerView(view);
+//        mProgressBar = view.findViewById(R.id.progress_bar);
+        mCallback.setIsInitialized(false);
+        mRestaurantsList = new ArrayList<>();
 
         return view;
     }
@@ -72,10 +71,6 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         }
     }
 
-    public void getBundleArgs(Bundle data) {
-        mRestaurantsList = data.getParcelableArrayList("restaurant list");
-    }
-
     public void buildRecyclerView(View view) {
         mRecyclerView = view.findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
@@ -84,32 +79,6 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         mAdapter = new RestaurantListAdapter(mRestaurantsList, getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
-
-        // Swipe recyclerView items
-        swipeController = new SwipeController(new SwipeControllerActions() {
-
-            @Override
-            public void onLeftClicked(final int position) {
-            }
-
-            @Override
-            public void onRightClicked(int position) {
-                // Task start immediately.
-                Toast.makeText(getContext(),
-                        "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
-                removeItem(position);
-            }
-        }, false, getResources());
-        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
-        itemTouchhelper.attachToRecyclerView(mRecyclerView);
-
-        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
-            @Override
-            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-                swipeController.onDraw(c);
-            }
-        });
-
         mAdapter.setOnItemClickListener(new RestaurantListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
@@ -155,6 +124,49 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         });
     }
 
+    public void swipeRecyclerView() {
+
+        swipeController = new SwipeController(new SwipeControllerActions() {
+
+            @Override
+            public void onLeftClicked(final int position) {
+            }
+
+            @Override
+            public void onRightClicked(int position) {
+                // Task start immediately.
+                Toast.makeText(getContext(),
+                        "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
+                removeItem(position);
+            }
+        }, false, getResources());
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(mRecyclerView);
+
+        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
+    }
+
+    public void updateRecyclerView() {
+        updateSearchParameters();
+        buildRecyclerView(getView());
+        if (!mCallback.getIsInitialized()) {
+            // Swipe recyclerView items
+            swipeRecyclerView();
+            mCallback.setIsInitialized(true);
+        }
+    }
+
+    private void updateSearchParameters() {
+        favorites = mCallback.getFavorites();
+        forbidden = mCallback.getForbidden();
+        mRestaurantsList = mCallback.getRestaurantList();
+    }
+
     public void removeItem(int position) {
         RestaurantInfo restaurant = mRestaurantsList.get(position);
 
@@ -174,15 +186,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
 
     @Override
     public void fragmentBecameVisible() {
-        // Update
-        favorites = mCallback.getFavorites();
-        forbidden = mCallback.getForbidden();
-        hasChanged = mCallback.getHasChanged();
-        mRestaurantsList = mCallback.getRestaurantList();
-        if (hasChanged) {
-            buildRecyclerView(getView());
-            hasChanged = false;
-        }
+
     }
 }
 

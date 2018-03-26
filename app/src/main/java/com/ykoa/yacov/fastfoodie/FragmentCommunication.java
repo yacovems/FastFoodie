@@ -18,8 +18,8 @@ public interface FragmentCommunication {
     public int getRadius();
     public void setRestaurantList(ArrayList<RestaurantInfo> list);
     public ArrayList<RestaurantInfo> getRestaurantList();
-    public void setHasChanged(boolean changed);
-    public boolean getHasChanged();
+    public void setIsInitialized(boolean changed);
+    public boolean getIsInitialized();
     public GoogleMap getMap();
     public void setMap(GoogleMap map);
     public LatLng getLatLng();
@@ -34,4 +34,5 @@ public interface FragmentCommunication {
     public void setForbidden(HashMap<String, String> forbidden);
     public String getUserId();
     public void updateDB(HashMap<String, Object> user);
+    public void updateRecyclerView();
 }

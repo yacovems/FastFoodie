@@ -87,30 +87,19 @@ public class MainActivity extends AppCompatActivity implements
     private String userId;
     private PopupWindow popup;
     private InternalStorageOps iso;
-    private NavigationView navigationView;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-
+    private Toolbar toolbar;
+    private boolean onlyFavorites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-
         iso = new InternalStorageOps();
-        // Get user info from Facebook initial login
-//        Bundle bundle = this.getIntent().getExtras();
-//        if (bundle != null) {getBundleExtras(bundle);}
-
-        // Create filter buttons
-        setUpFilterButtons();
-
-        // Set navigation drawer
-        setUpNavDrawer(toolbar);
 
         // Get user info
         getUserInfo();
@@ -150,11 +139,11 @@ public class MainActivity extends AppCompatActivity implements
                                     favorites = (HashMap<String, String>) userDoc.getData().get("favorites");
                                     forbidden = (HashMap<String, String>) userDoc.getData().get("forbidden");
 
-                                    // Set nav drawer user info
-                                    Menu navMenu = navigationView.getMenu();
-                                    navMenu.getItem(0).setTitle(userName);
-                                    new DownloadImageTask(navigationView.getMenu(),
-                                            getResources()).execute(userImage);
+                                    // Create filter buttons
+                                    setUpFilterButtons();
+
+                                    // Set navigation drawer
+                                    setUpNavDrawer(toolbar);
                                 }
                             }
                         } else {
@@ -172,9 +161,15 @@ public class MainActivity extends AppCompatActivity implements
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setItemIconTintList(null);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // Set nav drawer user info
+        Menu navMenu = navigationView.getMenu();
+        navMenu.getItem(0).setTitle(userName);
+        new DownloadImageTask(navigationView.getMenu(),
+                getResources()).execute(userImage);
     }
 
     private void setUpFilterButtons() {
@@ -183,14 +178,33 @@ public class MainActivity extends AppCompatActivity implements
 
         ImageButton b = (ImageButton) findViewById(R.id.distance);
         Drawable d = getResources().getDrawable(R.drawable.walk);
+        if (searchRadius != 500) {
+            d = getResources().getDrawable(R.drawable.drive);
+        }
         makeFilterButton(d, b,0, 2);
 
         b = (ImageButton) findViewById(R.id.cost);
         d = getResources().getDrawable(R.drawable.ic_4_dollar);
+        if (searchCost == 1) {
+            d = getResources().getDrawable(R.drawable.ic_1_dollar);
+        } else if (searchCost == 2) {
+            d = getResources().getDrawable(R.drawable.ic_2_dollar);
+        } else if (searchCost == 3) {
+            d = getResources().getDrawable(R.drawable.ic_3_dollar);
+        }
         makeFilterButton(d, b,1, 4);
 
         b = (ImageButton) findViewById(R.id.rating);
         d = getResources().getDrawable(R.drawable.ic_1_star);
+        if (searchRating == 2) {
+            d = getResources().getDrawable(R.drawable.ic_2_star);
+        } else if (searchRating == 3) {
+            d = getResources().getDrawable(R.drawable.ic_3_star);
+        } else if (searchRating == 4) {
+            d = getResources().getDrawable(R.drawable.ic_4_star);
+        } else if (searchRating == 5) {
+            d = getResources().getDrawable(R.drawable.ic_5_star);
+        }
         makeFilterButton(d, b, 2, 5);
 
         b = (ImageButton) findViewById(R.id.cuisine);
@@ -199,7 +213,39 @@ public class MainActivity extends AppCompatActivity implements
 
         b = (ImageButton) findViewById(R.id.favorite);
         d = getResources().getDrawable(R.drawable.favorite_border);
-        makeFilterButton(d, b, 4, 5);
+        makeFavoriteButton(d, b, 4);
+    }
+
+    private void makeFavoriteButton(Drawable drawable, ImageButton button,
+                                    final int buttonNum) {
+        filterButtons[buttonNum] = button;
+        filterButtons[buttonNum].setImageDrawable(drawable);
+        filterButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (!onlyFavorites) {
+                    onlyFavorites = true;
+                    Drawable d = getResources().getDrawable(R.drawable.favorite);
+                    filterButtons[buttonNum].setImageDrawable(d);
+                } else {
+                    onlyFavorites = false;
+                    Drawable d = getResources().getDrawable(R.drawable.favorite_border);
+                    filterButtons[buttonNum].setImageDrawable(d);
+                }
+
+                filterBtnID = buttonNum;
+                // Draw new circle and find restaurants nearby
+                MVF.drawCircle(deviceLocation);
+                try {
+                    MVF.findNearByRestaurants(deviceLocation, onlyFavorites);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                updateRecyclerView();
+
+            }
+        });
     }
 
     private void makeFilterButton(Drawable drawable, ImageButton button,
@@ -247,11 +293,12 @@ public class MainActivity extends AppCompatActivity implements
                 // Draw new circle and find restaurants nearby
                 MVF.drawCircle(deviceLocation);
                 try {
-                    MVF.findNearByRestaurants(deviceLocation);
+                    MVF.findNearByRestaurants(deviceLocation, onlyFavorites);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 filterButtons[filterBtnID].setImageDrawable(drawable);
+                updateRecyclerView();
             }
         });
     }
@@ -457,10 +504,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void setHasChanged(boolean changed) {this.hasChanged = changed;}
+    public void setIsInitialized(boolean changed) {this.hasChanged = changed;}
 
     @Override
-    public boolean getHasChanged() {return hasChanged;}
+    public boolean getIsInitialized() {return hasChanged;}
 
     @Override
     public GoogleMap getMap() {
@@ -535,5 +582,10 @@ public class MainActivity extends AppCompatActivity implements
                         Log.d(TAG, "Update Cloud Firestore successfully");
                     }
                 });
+    }
+
+    @Override
+    public void updateRecyclerView() {
+        RLF.updateRecyclerView();
     }
 }

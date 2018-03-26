@@ -7,6 +7,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!--<ProgressBar-->
+        <!--android:id="@+id/progress_bar"-->
+        <!--style="?android:progressBarStyle"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center"-->
+        <!--/>-->
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -14,7 +22,7 @@
         android:layout_weight="1"
         android:padding="5dp"
         android:background="@color/white"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical" />
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

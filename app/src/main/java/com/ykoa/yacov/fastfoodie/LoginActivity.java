@@ -1,10 +1,15 @@
 package com.ykoa.yacov.fastfoodie;
 
+import android.app.ActionBar;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -42,27 +47,32 @@ public class LoginActivity extends AppCompatActivity{
     private String userImage;
     private InternalStorageOps storage;
     private String loginFileName = "login_info";
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Get fine location user permission for Google maps API
+        getLocationPermission();
+
+        // Initialize internal storage read/write instance
         storage = new InternalStorageOps();
 
+        // If user is already signed in, go to main activity
         if (!readFile().equals("")) {
             Intent main = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(main);
         }
 
+        // Set logo animation
         ImageView logo = (ImageView) findViewById(R.id.logo);
         Animation load = AnimationUtils.loadAnimation(this, R.anim.slide_in_up);
         logo.startAnimation(load);
 
         // Facebook login
         callbackManager = CallbackManager.Factory.create();
-
         loginButton = (LoginButton) findViewById(R.id.login_button);
 
         // Button animation
@@ -87,6 +97,17 @@ public class LoginActivity extends AppCompatActivity{
                 error.printStackTrace();
             }
         });
+    }
+
+    private void getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+        }
     }
 
     private String readFile() {

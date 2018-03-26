@@ -18,7 +18,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -59,7 +58,6 @@ public class GoogleMapsAPI extends FragmentActivity {
     private static final String TAG = "GoogleMapsAPI";
 
     public GoogleMapsAPI(Activity activity, Bundle savedInstanceState, int radius) {
-        Log.d(TAG, "-----------------------> GoogleMapAPI constructor");
 
         this.activity = activity;
         this.searchRadius = radius;
@@ -133,16 +131,13 @@ public class GoogleMapsAPI extends FragmentActivity {
      * Prompts the user for permission to use the device location.
      */
     public void getLocationPermission() {
-        Log.d(TAG, "INSIDE ---> getLocationPermission!");
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
+        Log.d(TAG, "INSIDE ------> getLocationPermission!");
+
         if (ContextCompat.checkSelfPermission(activity.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
+            updateLocationUI();
         } else {
             ActivityCompat.requestPermissions(activity,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -174,13 +169,11 @@ public class GoogleMapsAPI extends FragmentActivity {
      */
     public void updateLocationUI() {
         Log.d(TAG, "INSIDE ---> updateLocationUI!");
-        if (mMap == null) {
-            return;
-        }
         try {
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                getDeviceLocation();
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -192,21 +185,11 @@ public class GoogleMapsAPI extends FragmentActivity {
         }
     }
 
-    public void setLocation(Location l) {
-        mLastKnownLocation = l;
-    }
-
     public Location getLocation() {
         return mLastKnownLocation;
     }
 
-    public GoogleMap getMap() {return mMap;}
-
     public void setMap(GoogleMap map) {
         mMap = map;
-    }
-
-    public void drawMarker(MarkerOptions marker) {
-        mMap.addMarker(marker);
     }
 }

@@ -12,6 +12,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.FrameLayout;
+        import android.widget.ImageView;
         import android.widget.TextView;
 
         import com.google.android.gms.maps.GoogleMap;
@@ -91,7 +92,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     // When map is ready to be used
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.d(TAG, "-------------------------> onMApReady");
+        Log.d(TAG, "INSIDE -----------> onMApReady");
         mMap = googleMap;
 
         // Use a custom info window adapter to handle multiple lines of text in the
@@ -125,19 +126,14 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         // Prompt the user for permission.
         mMapAPI.getLocationPermission();
 
-        // Turn on the My Location layer and the related control on the map.
-        mMapAPI.updateLocationUI();
-
-        // Get the current location of the device and set the position of the map.
-        mMapAPI.getDeviceLocation();
-
         // Callback for when map is loaded
         mMap.setOnMapLoadedCallback(this);
     }
 
     @Override
     public void onMapLoaded() {
-        Log.d(TAG, "-------------------------> onMApLoaded");
+        Log.d(TAG, "INSIDE ----------> onMApLoaded");
+
         location = mMapAPI.getLocation();
         LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
         mCallback.setLatLng(point);
@@ -147,7 +143,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         drawCircle(point);
         try {
             // Look for near by restaurants
-            findNearByRestaurants(point);
+            findNearByRestaurants(point, false);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -165,19 +161,21 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 .fillColor(Color.TRANSPARENT));
     }
 
-    public void findNearByRestaurants(LatLng p) throws IOException {
+    public void findNearByRestaurants(LatLng p, boolean onlyFavorites) throws IOException {
         GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
-        getNearbyPlacesData.execute(p);
+        getNearbyPlacesData.execute(p,onlyFavorites);
     }
 
     // Async task calls the Yelp API
     public class GetNearbyPlacesData extends AsyncTask<Object, String, String> {
 
         LatLng p;
+        boolean onlyFavorites;
 
         @Override
         protected String doInBackground(Object... params) {
             p = (LatLng) params[0];
+            onlyFavorites = (Boolean) params[1];
             final YelpService yelpService = new YelpService();
             String jsonData = null;
             try {
@@ -252,17 +250,10 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
                 // Check if current restaurant is in
                 // the user's favorites or forbidden
-
-                if (forbidden.containsKey(id)) {
-                    Log.d(TAG, "------------> THIS RESTAURANT IS FORBIDDEN!!!!");
-                    continue;
-                }
-
+                if (forbidden.containsKey(id)) {continue;}
                 boolean isFavorite = false;
-                if (favorites.containsKey(id)) {
-                    Log.d(TAG, "------------> THIS RESTAURANT IS A FAVORITE!!!!");
-                    isFavorite = true;
-                }
+                if (favorites.containsKey(id)) {isFavorite = true;}
+                else {if (onlyFavorites) {continue;}}
 
                 // Create a restaurant object
                 list.add(new RestaurantInfo(placeName, address, phoneNum, cuisine, rating, cost, d, imgURL, reviewCount, isFavorite, id));
@@ -272,20 +263,24 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 markerOptions.position(latLng);
                 markerOptions.title(placeName);
                 markerOptions.snippet(cuisine + " - " + rating);
-                if (rating >= 4) {
+                if (isFavorite) {
+                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                } else if (rating >= 4) {
                     markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 } else if (rating >= 3) {
                     markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
                 } else {
                     markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                 }
+
                 // Add marker onto the map view
                 mMap.addMarker(markerOptions);
-
             }
             // Set restaurant list
             mCallback.setRestaurantList(list);
-            mCallback.setHasChanged(true);
+
+            // Update/initialize recyclerView
+            mCallback.updateRecyclerView();
         }
     }
 
