@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:elevation="100dp"
     android:background="@color/white"
-    app:cardUseCompatPadding="false"
-    app:cardCornerRadius="20dp">
+    android:layout_marginBottom="5dp"
+    app:cardCornerRadius="50dp">
 
     <LinearLayout
         android:id="@+id/item"
@@ -87,7 +87,7 @@
                 android:id="@+id/call"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:paddingRight="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_toLeftOf="@+id/favorite"/>
 
             <ImageView
@@ -123,10 +123,5 @@
         </RelativeLayout>
 
     </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/charcoalGray" />
 
 </android.support.v7.widget.CardView>

@@ -90,7 +90,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
                 RestaurantInfo restaurant = mRestaurantsList.get(position);
 
                 try {
-                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                    Intent callIntent = new Intent(Intent.ACTION_DIAL);
                     callIntent.setData(Uri.parse("tel:" + restaurant.getPhoneNumber()));
                     startActivity(callIntent);
                 } catch (ActivityNotFoundException e) {
@@ -120,6 +120,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
                     user.put("favorites", favorites);
                     mCallback.updateDB(user);
                 }
+
+                // Update map fragment
+                mCallback.updateMapView();
             }
         });
     }
@@ -138,6 +141,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
                 Toast.makeText(getContext(),
                         "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
                 removeItem(position);
+
+                // Update map fragment
+                mCallback.updateMapView();
             }
         }, false, getResources());
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);

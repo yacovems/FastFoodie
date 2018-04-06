@@ -62,6 +62,7 @@ public class LoginActivity extends AppCompatActivity{
 
         // If user is already signed in, go to main activity
         if (!readFile().equals("")) {
+            System.out.println("-----------------------------> for some reason I end up in here!!");
             Intent main = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(main);
         }
@@ -151,7 +152,7 @@ public class LoginActivity extends AppCompatActivity{
                             user.put("picture", userImage);
                             user.put("email", userEmail);
                             user.put("cost", 4);
-                            user.put("distance", 500);
+                            user.put("distance", 300);
                             user.put("rating", 2);
                             user.put("cuisine", "All");
                             user.put("favorites", new HashMap<String, String>());

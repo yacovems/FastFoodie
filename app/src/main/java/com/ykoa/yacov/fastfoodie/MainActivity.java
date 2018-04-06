@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
 
     // Default search parameters
-    private final int DEFAULT_SEARCH_RADIUS = 500;
+    private final int DEFAULT_SEARCH_RADIUS = 300;
     private final int DEFAULT_SEARCH_COST = 4;
     private final int DEFAULT_SEARCH_RATING = 1;
     private final int NUM_FILTER_BUTTONS = 5;
@@ -72,8 +72,6 @@ public class MainActivity extends AppCompatActivity implements
     private ImageButton[] filterButtons;
     private ImageButton[] popupButtons;
     private int filterBtnID;
-    private Spinner cuisineSpinner;
-    private ArrayAdapter<CharSequence> adapter;
     private boolean hasChanged;
     private GoogleMap mMap = null;
     private RestaurantListFragment RLF = null;
@@ -209,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements
 
         b = (ImageButton) findViewById(R.id.cuisine);
         d = getResources().getDrawable(R.drawable.cuisine);
-        makeFilterButton(d, b, 3, 10);
+        makeFilterButton(d, b, 3, 5);
 
         b = (ImageButton) findViewById(R.id.favorite);
         d = getResources().getDrawable(R.drawable.favorite_border);
@@ -387,12 +385,11 @@ public class MainActivity extends AppCompatActivity implements
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             layout = layoutInflater.inflate(R.layout.cuisine_popup_layout, viewGroup);
 
-//            cuisineSpinner = (Spinner) findViewById(R.id.spinner);
-//            // Create an ArrayAdapter using the string array and a default spinner layout
-//            adapter = ArrayAdapter.createFromResource(this,
-//                    R.array.cuisine_array, android.R.layout.simple_spinner_item);
-//            // Specify the layout to use when the list of choices appears
-//            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            // adjust popup width and position on the screen
+            popupWidth *= 2;
+            x -= popupWidth / 4;
+
+            // initialize buttons
         }
 
         // Creating the PopupWindow
@@ -403,10 +400,7 @@ public class MainActivity extends AppCompatActivity implements
         popup.setHeight(popupHeight);
         popup.setFocusable(true);
 
-        // Apply the adapter to the spinner
-//        if (adapter != null) {
-//            cuisineSpinner.setAdapter(adapter);
-//        }
+
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 10);
     }
@@ -587,5 +581,15 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void updateRecyclerView() {
         RLF.updateRecyclerView();
+    }
+
+    @Override
+    public void updateMapView() {
+        MVF.drawCircle(deviceLocation);
+        try {
+            MVF.findNearByRestaurants(deviceLocation, onlyFavorites);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

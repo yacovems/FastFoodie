@@ -31,7 +31,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
     private Context context;
     private ArrayList<RestaurantInfo> mRestaurantsList;
     private OnItemClickListener mListener;
-    private boolean isFavorite = false;
+    private ViewHolder vh;
 
     public interface OnItemClickListener {
         void onItemClick(int position);
@@ -57,9 +57,8 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
         public TextView reviewCount;
         public boolean isFavorite;
 
-        public ViewHolder(View itemView, final OnItemClickListener listener, final boolean isFavorite) {
+        public ViewHolder(View itemView, final OnItemClickListener listener) {
             super(itemView);
-            this.isFavorite = isFavorite;
             name = itemView.findViewById(R.id.restaurant_name);
             cuisine = itemView.findViewById(R.id.cuisine);
             address = itemView.findViewById(R.id.address);
@@ -71,11 +70,6 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             call = itemView.findViewById(R.id.call);
             call.setBackgroundResource(R.drawable.call);
             favorite = itemView.findViewById(R.id.favorite);
-            if (isFavorite) {
-                favorite.setBackgroundResource(R.drawable.favorite);
-            } else {
-                favorite.setBackgroundResource(R.drawable.favorite_border);
-            }
 
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -107,6 +101,10 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
                 }
             });
         }
+
+        public void setIsFavorite(boolean isFavorite) {
+            this.isFavorite = isFavorite;
+        }
     }
 
     public RestaurantListAdapter(ArrayList<RestaurantInfo> list, Context context) {
@@ -117,8 +115,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item, parent, false);
-        Log.d("on create view holder", "assigning isFavorite" );
-        ViewHolder vh = new ViewHolder(v, mListener, isFavorite);
+        vh = new ViewHolder(v, mListener);
         return vh;
     }
 
@@ -128,8 +125,11 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
 
         // Sets favorite button
         if (currItem.getIsFavorite()) {
-            Log.d("on bind view holder", "checking isFavorite" );
-            isFavorite = true;
+            holder.favorite.setImageResource(R.drawable.favorite);
+            vh.setIsFavorite(true);
+        } else {
+            holder.favorite.setImageResource(R.drawable.favorite_border);
+            vh.setIsFavorite(false);
         }
 
         // Download image from url

@@ -14,25 +14,26 @@ import java.util.Map;
 
 public interface FragmentCommunication {
 
-    public void setRadius(int radius);
-    public int getRadius();
-    public void setRestaurantList(ArrayList<RestaurantInfo> list);
-    public ArrayList<RestaurantInfo> getRestaurantList();
-    public void setIsInitialized(boolean changed);
-    public boolean getIsInitialized();
-    public GoogleMap getMap();
-    public void setMap(GoogleMap map);
-    public LatLng getLatLng();
-    public void setLatLng(LatLng position);
-    public void setCost(int cost);
-    public int getCost();
-    public void setRating(int rating);
-    public int getRating();
-    public HashMap<String, String> getFavorites();
-    public void setFavorites(HashMap<String, String> favorites);
-    public HashMap<String, String> getForbidden();
-    public void setForbidden(HashMap<String, String> forbidden);
-    public String getUserId();
-    public void updateDB(HashMap<String, Object> user);
-    public void updateRecyclerView();
+    void setRadius(int radius);
+    int getRadius();
+    void setRestaurantList(ArrayList<RestaurantInfo> list);
+    ArrayList<RestaurantInfo> getRestaurantList();
+    void setIsInitialized(boolean changed);
+    boolean getIsInitialized();
+    GoogleMap getMap();
+    void setMap(GoogleMap map);
+    LatLng getLatLng();
+    void setLatLng(LatLng position);
+    void setCost(int cost);
+    int getCost();
+    void setRating(int rating);
+    int getRating();
+    HashMap<String, String> getFavorites();
+    void setFavorites(HashMap<String, String> favorites);
+    HashMap<String, String> getForbidden();
+    void setForbidden(HashMap<String, String> forbidden);
+    String getUserId();
+    void updateDB(HashMap<String, Object> user);
+    void updateRecyclerView();
+    void updateMapView();
 }
