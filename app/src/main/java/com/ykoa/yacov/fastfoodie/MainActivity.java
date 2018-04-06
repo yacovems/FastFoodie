@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -381,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements
 
         } else if (filterBtnID == 3) {
             viewGroup = (LinearLayout) context.findViewById(R.id.popup3);
+
             layoutInflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             layout = layoutInflater.inflate(R.layout.cuisine_popup_layout, viewGroup);
@@ -388,8 +390,6 @@ public class MainActivity extends AppCompatActivity implements
             // adjust popup width and position on the screen
             popupWidth *= 2;
             x -= popupWidth / 4;
-
-            // initialize buttons
         }
 
         // Creating the PopupWindow
@@ -398,8 +398,10 @@ public class MainActivity extends AppCompatActivity implements
         popup.setContentView(layout);
         popup.setWidth(popupWidth);
         popup.setHeight(popupHeight);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            popup.setOverlapAnchor(false);
+        }
         popup.setFocusable(true);
-
 
         // Displaying the popup at the specified location, + offsets.
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 10);
@@ -449,8 +451,6 @@ public class MainActivity extends AppCompatActivity implements
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
         }
     }
 
