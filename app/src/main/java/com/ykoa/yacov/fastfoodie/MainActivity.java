@@ -464,7 +464,7 @@ public class MainActivity extends AppCompatActivity implements
             
         } else if (id == R.id.nav_review) {
 
-        } else if (id == R.id.nav_favorits) {
+        } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_settings) {
             Intent i = new Intent(MainActivity.this, SettingsActivity.class);

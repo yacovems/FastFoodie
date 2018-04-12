@@ -13,21 +13,29 @@
             android:icon="@drawable/review"
             android:title="Your reviews" />
         <item
-            android:id="@+id/nav_favorits"
-            android:icon="@drawable/favorite_border"
-            android:title="Favorites" />
+            android:id="@+id/nav_share"
+            android:icon="@drawable/ic_menu_share"
+            android:title="Share restaurant" />
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/settings"
             android:title="Settings" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Pin colors">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share restaurant" />
+                android:icon="@drawable/yellow_pin"
+                android:title="Favorite restaurant" />
+            <item
+                android:icon="@drawable/green_pin"
+                android:title="Rating higher than 4.0" />
+            <item
+                android:icon="@drawable/orange_pin"
+                android:title="Rating between 3.0 and 4.0" />
+            <item
+                android:icon="@drawable/red_pin"
+                android:title="Rating lower than 3.0" />
         </menu>
     </item>
 

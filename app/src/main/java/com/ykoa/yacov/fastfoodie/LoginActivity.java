@@ -1,18 +1,26 @@
 package com.ykoa.yacov.fastfoodie;
 
 import android.app.ActionBar;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -61,6 +69,8 @@ public class LoginActivity extends AppCompatActivity{
         storage = new InternalStorageOps();
 
         // If user is already signed in, go to main activity
+        String status = readFile();
+        System.out.println("-----------------------------> status is: " + status);
         if (!readFile().equals("")) {
             System.out.println("-----------------------------> for some reason I end up in here!!");
             Intent main = new Intent(LoginActivity.this, MainActivity.class);
@@ -178,15 +188,19 @@ public class LoginActivity extends AppCompatActivity{
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        Log.d("User added to Firebase", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        Log.d("User added to Firebase",
+                                "DocumentSnapshot added with ID: " + documentReference.getId());
 
                         // Save to internal storage
                         String toFile = documentReference.getId();
                         storage.writeToFile(getApplicationContext(), toFile, loginFileName);
 
+                        // Since it's a first log-in, show tutorial
+                        showTutorial();
+
                         // After retrieving the user's info, start MainActivity
-                        Intent main = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(main);
+//                        Intent main = new Intent(LoginActivity.this, MainActivity.class);
+//                        startActivity(main);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -195,6 +209,30 @@ public class LoginActivity extends AppCompatActivity{
 
                     }
                 });
+
+    }
+
+    private void showTutorial() {
+
+        // Get width and height of the device's screen
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+
+        // Create a layout for the popup window
+        LinearLayout viewGroup = null;
+        LayoutInflater layoutInflater = null;
+        View layout = null;
+
+        viewGroup = (LinearLayout) findViewById(R.id.tutorial_popup);
+        layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        layout = layoutInflater.inflate(R.layout.tutorial, viewGroup);
+
+        // Create the popup
+        CustomPopupWindow popupTutorial =
+                new CustomPopupWindow(width, height, this, layout);
+
 
     }
 

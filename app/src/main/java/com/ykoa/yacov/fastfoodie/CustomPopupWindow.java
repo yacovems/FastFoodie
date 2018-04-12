@@ -24,6 +24,7 @@ public class CustomPopupWindow {
     private PopupWindow popup;
 
     public CustomPopupWindow(int width, int height, Activity context, View layout) {
+
         popupWidth = width;
         popupHeight = height;
         this.layout = layout;
@@ -35,11 +36,26 @@ public class CustomPopupWindow {
         popup.setWidth(popupWidth);
         popup.setHeight(popupHeight);
         popup.setFocusable(true);
-    }
+        popup.showAtLocation(layout, Gravity.NO_GRAVITY, 0, 0);
 
-    public void showPopupWindow(int x, int y) {
-        // Displaying the popup at the specified location, + offsets.
-        popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 5);
+        ImageButton leftArrow = (ImageButton) layout.findViewById(R.id.left_arrow_btn);
+        ImageButton rightArrow = (ImageButton) layout.findViewById(R.id.right_arrow_btn);
+
+        leftArrow.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        rightArrow.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
     }
 
     public PopupWindow getPopup() {
