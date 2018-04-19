@@ -49,12 +49,15 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     GoogleMap mMap;
     Location location = null;
 
+    private boolean onlyFavorites;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.map_fragment,
                 container, false);
+
 
         // Retrieve tasks lists from bundle
 //        Bundle data = getArguments();
@@ -163,129 +166,116 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
     public void findNearByRestaurants(LatLng p, boolean onlyFavorites) throws IOException {
         GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
-        getNearbyPlacesData.execute(p,onlyFavorites);
+        this.onlyFavorites = onlyFavorites;
+        getNearbyPlacesData.execute(p);
     }
 
     // Async task calls the Yelp API
-    public class GetNearbyPlacesData extends AsyncTask<Object, String, String> {
+    public class GetNearbyPlacesData extends AsyncTask<Object, String, ArrayList<RestaurantInfo>> {
 
         LatLng p;
-        boolean onlyFavorites;
 
         @Override
-        protected String doInBackground(Object... params) {
+        protected ArrayList<RestaurantInfo> doInBackground(Object... params) {
             p = (LatLng) params[0];
-            onlyFavorites = (Boolean) params[1];
             final YelpService yelpService = new YelpService();
             String jsonData = null;
+            ArrayList<RestaurantInfo> placesList = null;
             try {
                 jsonData = yelpService.setYelpRequest(getContext(),
                         p.latitude, p.longitude, searchRadius,  "restaurants");
+
+                // Parse the Yelp API response
+                DataParser dataParser = new DataParser(mCallback.getFavorites(), mCallback.getForbidden());
+                placesList = dataParser.parse(jsonData);
+                mCallback.setRestaurantList(placesList);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return jsonData;
+            return placesList;
         }
 
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(ArrayList<RestaurantInfo> placesList) {
             Log.d("onPostExecute", "parse jsonObject");
-
-            DataParser dataParser = new DataParser();
-            List<HashMap<String, String>> hm = dataParser.parse(result);
-            showNearbyPlaces(hm);
+            showNearbyPlaces(placesList, onlyFavorites);
         }
+    }
 
-        // Creates restaurant objects from the Yelp API responses
-        // and placing markers on the map
-        private void showNearbyPlaces(List<HashMap<String, String>> hm) {
+    // Creates restaurant objects from the Yelp API responses
+    // and placing markers on the map
+    public void showNearbyPlaces(ArrayList<RestaurantInfo> placesList, boolean onlyFavorites) {
 
-            Log.d("showNearByPlaces", "size of near by places list ------> " + hm.size());
-            searchCost = mCallback.getCost();
-            searchRating = mCallback.getRating();
-            favorites = mCallback.getFavorites();
-            forbidden = mCallback.getForbidden();
+        Log.d("showNearByPlaces", "size of near by places list ------> " + placesList.size());
+        searchCost = mCallback.getCost();
+        searchRating = mCallback.getRating();
+        favorites = mCallback.getFavorites();
+        forbidden = mCallback.getForbidden();
 
-            // Create arrayList of restaurants
-            ArrayList<RestaurantInfo> list =  new ArrayList<>();
+        // Create arrayList of restaurants
+        ArrayList<RestaurantInfo> tempList =  new ArrayList<>();
 
-            for (int i = 0; i < hm.size(); i++) {
-                MarkerOptions markerOptions = new MarkerOptions();
-                HashMap<String, String> place = hm.get(i);
-                if (place.get("lat") == null || place.get("lng") == null || place.get("rating") == null) {continue;}
+        for (int i = 0; i < placesList.size(); i++) {
 
-                // If outside the search radius
-                String distance = place.get("distance");
-                if (Double.parseDouble(distance) > searchRadius) {continue;}
+            MarkerOptions markerOptions = new MarkerOptions();
+            RestaurantInfo restaurant = placesList.get(i);
 
-                // If not open at the moment
-                String status = place.get("is_closed");
-                if (status.equals("closed")) {continue;}
+            // If outside the search radius
+            String distance = restaurant.getDistance();
+            if (Double.parseDouble(distance) > searchRadius) {continue;}
 
-                // If over the search cost
-                String cost = place.get("cost");
-                int cInt = 0;
-                if (cost.equals("$")) {cInt = 1;}
-                else if (cost.equals("$$")) {cInt = 2;}
-                else if (cost.equals("$$$")) {cInt = 3;}
-                else if (cost.equals("$$$$")) {cInt = 4;}
-                if (cInt > searchCost) {continue;}
+            // If over the search cost
+            String cost = restaurant.getCost();
+            int cInt = 0;
+            if (cost.equals("$")) {cInt = 1;}
+            else if (cost.equals("$$")) {cInt = 2;}
+            else if (cost.equals("$$$")) {cInt = 3;}
+            else if (cost.equals("$$$$")) {cInt = 4;}
+            if (cInt > searchCost) {continue;}
 
-                // If below the search rating
-                double rating = Double.parseDouble(place.get("rating"));
-                if (rating < searchRating) {continue;}
+            // If below the search rating
+            if (restaurant.getRating() < searchRating) {continue;}
 
-                // Rest of restaurant info
-                DecimalFormat value = new DecimalFormat("#.#");
-                String d = value.format(Double.parseDouble(distance) / 1609.344);
-                double lat = Double.parseDouble(place.get("lat"));
-                double lng = Double.parseDouble(place.get("lng"));
-                String placeName = place.get("name");
-                String address = place.get("address");
-                String cuisine = place.get("cuisine");
-                String imgURL = place.get("image");
-                String reviewCount = place.get("review_count");
-                String phoneNum = place.get("phone");
-                String id = place.get("id");
+            // Check if current restaurant is in
+            // the user's favorites or forbidden
+            if (restaurant.getIsForbidden()) {continue;}
+            if (!restaurant.getIsFavorite() && onlyFavorites) {continue;}
 
-                // Check if current restaurant is in
-                // the user's favorites or forbidden
-                if (forbidden.containsKey(id)) {continue;}
-                boolean isFavorite = false;
-                if (favorites.containsKey(id)) {isFavorite = true;}
-                else {if (onlyFavorites) {continue;}}
 
-                // Create a restaurant object
-                list.add(new RestaurantInfo(placeName, address, phoneNum, cuisine, rating, cost, d, imgURL, reviewCount, isFavorite, id));
-
-                // Create marker on the map
-                LatLng latLng = new LatLng(lat, lng);
-                markerOptions.position(latLng);
-                markerOptions.title(placeName);
-                markerOptions.snippet(cuisine + " - " + rating);
-                if (isFavorite) {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                } else if (rating >= 4) {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                } else if (rating >= 3) {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
-                } else {
-                    markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                }
-
-                // Add marker onto the map view
-                mMap.addMarker(markerOptions);
+            // Create marker on the map
+            markerOptions.position(restaurant.getLocation());
+            markerOptions.title(restaurant.getName());
+            markerOptions.snippet(restaurant.getCuisine() + " - " + restaurant.getRating());
+            if (restaurant.getIsFavorite()) {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+            } else if (restaurant.getRating() >= 4) {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            } else if (restaurant.getRating() >= 3) {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+            } else {
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
             }
-            // Set restaurant list
-            mCallback.setRestaurantList(list);
 
-            // Update/initialize recyclerView
-            mCallback.updateRecyclerView();
+            // Add restaurant to temp list
+            tempList.add(restaurant);
+
+            // Add marker onto the map view
+            mMap.addMarker(markerOptions);
         }
+        // Set restaurant list
+        mCallback.setTempRestaurantList(tempList);
+
+        // Update/initialize recyclerView
+        mCallback.updateRecyclerView();
     }
 
     @Override
     public void fragmentBecameVisible() {
+        // Hide sort button
+        mCallback.hideSortButton();
+
+        // Update lists and search parameters
         favorites = mCallback.getFavorites();
         forbidden = mCallback.getForbidden();
         searchRadius = mCallback.getRadius();

@@ -17,7 +17,9 @@ public interface FragmentCommunication {
     void setRadius(int radius);
     int getRadius();
     void setRestaurantList(ArrayList<RestaurantInfo> list);
+    void setTempRestaurantList(ArrayList<RestaurantInfo> list);
     ArrayList<RestaurantInfo> getRestaurantList();
+    ArrayList<RestaurantInfo> getTempRestaurantList();
     void setIsInitialized(boolean changed);
     boolean getIsInitialized();
     GoogleMap getMap();
@@ -36,4 +38,6 @@ public interface FragmentCommunication {
     void updateDB(HashMap<String, Object> user);
     void updateRecyclerView();
     void updateMapView();
+    void showSortButton();
+    void hideSortButton();
 }

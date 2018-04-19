@@ -234,6 +234,16 @@ public class LoginActivity extends AppCompatActivity{
                 new CustomPopupWindow(width, height, this, layout);
 
 
+        popupTutorial.addButton((ImageButton) findViewById(R.id.left_arrow_btn));
+//        ImageButton leftArrow = popupTutorial.getButton(0);
+//        leftArrow.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                System.out.println("-888888888888888888888888899999999999999999");
+//            }
+//        });
+
+
     }
 
     @Override

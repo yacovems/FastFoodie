@@ -7,10 +7,12 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by Yacov on 3/22/2018.
@@ -22,8 +24,13 @@ public class CustomPopupWindow {
     private int popupWidth;
     private int popupHeight;
     private PopupWindow popup;
+    private ArrayList<ImageButton> buttons;
+    private ArrayList<ImageView> images;
 
     public CustomPopupWindow(int width, int height, Activity context, View layout) {
+
+        buttons = new ArrayList<>();
+        images = new ArrayList<>();
 
         popupWidth = width;
         popupHeight = height;
@@ -38,24 +45,47 @@ public class CustomPopupWindow {
         popup.setFocusable(true);
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, 0, 0);
 
-        ImageButton leftArrow = (ImageButton) layout.findViewById(R.id.left_arrow_btn);
-        ImageButton rightArrow = (ImageButton) layout.findViewById(R.id.right_arrow_btn);
+//        ImageButton leftArrow = (ImageButton) layout.findViewById(R.id.left_arrow_btn);
+//        ImageButton rightArrow = (ImageButton) layout.findViewById(R.id.right_arrow_btn);
+//
+//        leftArrow.setOnClickListener(new View.OnClickListener(){
+//
+//            @Override
+//            public void onClick(View view) {
+//
+//            }
+//        });
+//
+//        rightArrow.setOnClickListener(new View.OnClickListener(){
+//
+//            @Override
+//            public void onClick(View view) {
+//
+//            }
+//        });
+    }
 
-        leftArrow.setOnClickListener(new View.OnClickListener(){
+    public void addButton(ImageButton button) {
+        buttons.add(button);
+//        button.setOnClickListener(new View.OnClickListener(){
+//
+//            @Override
+//            public void onClick(View view) {
+//                System.out.println("-------------99999999999999999999-------------");
+//            }
+//        });
+    }
 
-            @Override
-            public void onClick(View view) {
+    public ImageButton getButton(int x) {
+        return buttons.get(x);
+    }
 
-            }
-        });
+    public void addText(String label) {
 
-        rightArrow.setOnClickListener(new View.OnClickListener(){
+    }
 
-            @Override
-            public void onClick(View view) {
+    public void addImage() {
 
-            }
-        });
     }
 
     public PopupWindow getPopup() {

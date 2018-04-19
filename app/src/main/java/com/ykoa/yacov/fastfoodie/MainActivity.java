@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -22,6 +23,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -59,8 +61,9 @@ public class MainActivity extends AppCompatActivity implements
     private final int DEFAULT_SEARCH_RADIUS = 300;
     private final int DEFAULT_SEARCH_COST = 4;
     private final int DEFAULT_SEARCH_RATING = 1;
-    private final int NUM_FILTER_BUTTONS = 5;
+    private final int NUM_FILTER_BUTTONS = 4;
     private final int NUM_POPUP_BUTTONS = 11;
+    private final int NUM_CUISINE_BUTTONS = 18;
     private final String DEFAULT_SEARCH_CUISINE = "All";
 
     private int searchRadius = DEFAULT_SEARCH_RADIUS;
@@ -70,8 +73,11 @@ public class MainActivity extends AppCompatActivity implements
 
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
+    private ArrayList<RestaurantInfo> mTempRestaurantList;
     private ImageButton[] filterButtons;
     private ImageButton[] popupButtons;
+    private Button sortButton;
+    private Button[] cuisineButtons;
     private int filterBtnID;
     private boolean hasChanged;
     private GoogleMap mMap = null;
@@ -105,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Initialize array list of restaurants.
         mRestaurantList = new ArrayList<>();
+        mTempRestaurantList = new ArrayList<>();
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = findViewById(R.id.container);
@@ -138,8 +145,9 @@ public class MainActivity extends AppCompatActivity implements
                                     favorites = (HashMap<String, String>) userDoc.getData().get("favorites");
                                     forbidden = (HashMap<String, String>) userDoc.getData().get("forbidden");
 
-                                    // Create filter buttons
+                                    // Create filter and cuisine buttons
                                     setUpFilterButtons();
+                                    setUpCuisineButtons();
 
                                     // Set navigation drawer
                                     setUpNavDrawer(toolbar);
@@ -172,12 +180,23 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setUpFilterButtons() {
-        // 5 filter buttons
+        // Initialize sort button
+        sortButton = (Button) findViewById(R.id.sort_btn);
+        // Hide sort button
+        sortButton.setVisibility(View.GONE);
+        sortButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        // 4 filter buttons
         filterButtons = new ImageButton[NUM_FILTER_BUTTONS];
 
         ImageButton b = (ImageButton) findViewById(R.id.distance);
         Drawable d = getResources().getDrawable(R.drawable.walk);
-        if (searchRadius != 500) {
+        if (searchRadius != DEFAULT_SEARCH_RADIUS) {
             d = getResources().getDrawable(R.drawable.drive);
         }
         makeFilterButton(d, b,0, 2);
@@ -206,13 +225,32 @@ public class MainActivity extends AppCompatActivity implements
         }
         makeFilterButton(d, b, 2, 5);
 
-        b = (ImageButton) findViewById(R.id.cuisine);
-        d = getResources().getDrawable(R.drawable.cuisine);
-        makeFilterButton(d, b, 3, 5);
+//        b = (ImageButton) findViewById(R.id.cuisine);
+//        d = getResources().getDrawable(R.drawable.cuisine);
+//        makeFilterButton(d, b, 3, 5);
 
         b = (ImageButton) findViewById(R.id.favorite);
         d = getResources().getDrawable(R.drawable.favorite_border);
-        makeFavoriteButton(d, b, 4);
+        makeFavoriteButton(d, b, 3);
+    }
+
+
+    private void makeFilterButton(Drawable drawable, ImageButton button,
+                                  final int buttonNum, final int size) {
+        filterButtons[buttonNum] = button;
+        filterButtons[buttonNum].setImageDrawable(drawable);
+        filterButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                filterBtnID = buttonNum;
+                int[] location = new int[2];
+                filterButtons[buttonNum].getLocationOnScreen(location);
+                showPopup(MainActivity.this, location[0], location[1],
+                        filterButtons[buttonNum].getWidth(),
+                        filterButtons[buttonNum].getHeight(), size);
+            }
+        });
     }
 
     private void makeFavoriteButton(Drawable drawable, ImageButton button,
@@ -236,33 +274,116 @@ public class MainActivity extends AppCompatActivity implements
                 filterBtnID = buttonNum;
                 // Draw new circle and find restaurants nearby
                 MVF.drawCircle(deviceLocation);
-                try {
-                    MVF.findNearByRestaurants(deviceLocation, onlyFavorites);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
                 updateRecyclerView();
 
             }
         });
     }
 
-    private void makeFilterButton(Drawable drawable, ImageButton button,
-                                  final int buttonNum, final int size) {
-        filterButtons[buttonNum] = button;
-        filterButtons[buttonNum].setImageDrawable(drawable);
-        filterButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+    private void setUpCuisineButtons() {
+        cuisineButtons = new Button[NUM_CUISINE_BUTTONS];
 
-                filterBtnID = buttonNum;
-                int[] location = new int[2];
-                filterButtons[buttonNum].getLocationOnScreen(location);
-                showPopup(MainActivity.this, location[0], location[1],
-                        filterButtons[buttonNum].getWidth(),
-                        filterButtons[buttonNum].getHeight(), size);
+        Button b = (Button) findViewById(R.id.all_btn);
+        makeCuisineButton(b,0);
+
+        b = (Button) findViewById(R.id.breakfast_btn);
+        makeCuisineButton(b,1);
+
+        b = (Button) findViewById(R.id.coffee_btn);
+        makeCuisineButton(b,2);
+
+        b = (Button) findViewById(R.id.american_btn);
+        makeCuisineButton(b,3);
+
+        b = (Button) findViewById(R.id.brazilian_btn);
+        makeCuisineButton(b,4);
+
+        b = (Button) findViewById(R.id.chinese_btn);
+        makeCuisineButton(b,5);
+
+        b = (Button) findViewById(R.id.french_btn);
+        makeCuisineButton(b,6);
+
+        b = (Button) findViewById(R.id.greek_btn);
+        makeCuisineButton(b,7);
+
+        b = (Button) findViewById(R.id.indian_btn);
+        makeCuisineButton(b,8);
+
+        b = (Button) findViewById(R.id.italian_btn);
+        makeCuisineButton(b,9);
+
+        b = (Button) findViewById(R.id.japanese_btn);
+        makeCuisineButton(b,10);
+
+        b = (Button) findViewById(R.id.korean_btn);
+        makeCuisineButton(b,11);
+
+        b = (Button) findViewById(R.id.mexican_btn);
+        makeCuisineButton(b,12);
+
+        b = (Button) findViewById(R.id.middle_eastern_btn);
+        makeCuisineButton(b,13);
+
+        b = (Button) findViewById(R.id.russian_btn);
+        makeCuisineButton(b,14);
+
+        b = (Button) findViewById(R.id.spanish_btn);
+        makeCuisineButton(b,15);
+
+        b = (Button) findViewById(R.id.thai_btn);
+        makeCuisineButton(b,16);
+
+        b = (Button) findViewById(R.id.brunch_btn);
+        makeCuisineButton(b,17);
+    }
+
+    private void makeCuisineButton(Button button, final int buttonNum) {
+        cuisineButtons[buttonNum] = button;
+
+        // Set the "All" cuisine button as active.
+        // Shows the user that all cuisines are looked at.
+        if (buttonNum == 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
+                        .getColorStateList(getApplicationContext(), R.color.colorPrimary));
             }
-        });
+        }
+
+        if (buttonNum == 0) {
+
+            cuisineButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    for (int i = 0; i < cuisineButtons.length; i++) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            cuisineButtons[i].setBackgroundTintList(ContextCompat
+                                    .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                        }
+                    }
+
+                }
+            });
+
+        } else {
+
+            cuisineButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
+                                .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                    }
+
+                }
+            });
+
+        }
+
+
+
     }
 
     private void makePopupButton(final int radius,
@@ -291,11 +412,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 // Draw new circle and find restaurants nearby
                 MVF.drawCircle(deviceLocation);
-                try {
-                    MVF.findNearByRestaurants(deviceLocation, onlyFavorites);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
                 filterButtons[filterBtnID].setImageDrawable(drawable);
                 updateRecyclerView();
             }
@@ -419,7 +536,6 @@ public class MainActivity extends AppCompatActivity implements
 
         RLF = new RestaurantListFragment();
         Bundle b2 = new Bundle();
-        b2.putParcelableArrayList("restaurant list", mRestaurantList);
         RLF.setArguments(b2);
 
         adapter.addFragment(MVF, "Map");
@@ -493,8 +609,18 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void setTempRestaurantList(ArrayList<RestaurantInfo> list) {
+        mTempRestaurantList = list;
+    }
+
+    @Override
     public ArrayList<RestaurantInfo> getRestaurantList() {
         return mRestaurantList;
+    }
+
+    @Override
+    public ArrayList<RestaurantInfo> getTempRestaurantList() {
+        return mTempRestaurantList;
     }
 
     @Override
@@ -591,5 +717,15 @@ public class MainActivity extends AppCompatActivity implements
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void showSortButton() {
+        sortButton.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideSortButton() {
+        sortButton.setVisibility(View.GONE);
     }
 }

@@ -27,25 +27,41 @@
             app:contentInsetRight="0dp"
             app:contentInsetEnd="0dp">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="horizontal">
 
-                <ImageView
-                    android:layout_width="150dp"
-                    android:layout_height="50dp"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/fast_foodie_logo"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="150dp"
-                    android:layout_height="15dp"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/logo_v2"/>
+                    <ImageView
+                        android:layout_width="150dp"
+                        android:layout_height="50dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/fast_foodie_logo"/>
 
-            </LinearLayout>
+                    <ImageView
+                        android:layout_width="150dp"
+                        android:layout_height="15dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/logo_v2"/>
 
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/sort_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/sort"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:text="sort"
+                    android:layout_alignParentEnd="true"
+                    />
+
+            </RelativeLayout>
 
         </android.support.v7.widget.Toolbar>
 

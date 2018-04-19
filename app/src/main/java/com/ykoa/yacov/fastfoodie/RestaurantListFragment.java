@@ -89,6 +89,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             public void onCallClick(int position) {
                 RestaurantInfo restaurant = mRestaurantsList.get(position);
 
+                // If phone number not available, don't do anything.
+                if (restaurant.getPhoneNumber().equals("phone not available")) {return;}
+
                 try {
                     Intent callIntent = new Intent(Intent.ACTION_DIAL);
                     callIntent.setData(Uri.parse("tel:" + restaurant.getPhoneNumber()));
@@ -170,7 +173,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private void updateSearchParameters() {
         favorites = mCallback.getFavorites();
         forbidden = mCallback.getForbidden();
-        mRestaurantsList = mCallback.getRestaurantList();
+        mRestaurantsList = mCallback.getTempRestaurantList();
     }
 
     public void removeItem(int position) {
@@ -192,7 +195,8 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
 
     @Override
     public void fragmentBecameVisible() {
-
+        // Show sort button
+        mCallback.showSortButton();
     }
 }
 

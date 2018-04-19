@@ -6,11 +6,13 @@ import android.os.Parcel;
         import android.os.Parcelable;
 import android.widget.ImageView;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by yacov on 3/7/2018.
  */
 
-public class RestaurantInfo implements Parcelable{
+public class RestaurantInfo {
 
     private String name;
     private String address;
@@ -22,7 +24,10 @@ public class RestaurantInfo implements Parcelable{
     private String distance;
     private String reviewCount;
     private boolean isFavorite;
+    private boolean isForbidden;
     private String id;
+    private LatLng location;
+    private String yelpWebsite;
 
 
     public RestaurantInfo() {}
@@ -30,7 +35,7 @@ public class RestaurantInfo implements Parcelable{
     public RestaurantInfo(String name, String address, String phoneNumber,
                           String cuisine, double rating, String cost,
                           String distance, String img, String reviewCount,
-                          boolean isFavorite, String id) {
+                          boolean isFavorite, boolean isForbidden, String id, LatLng location, String yelpWebsite) {
 
         this.name = name;
         this.address = address;
@@ -42,7 +47,10 @@ public class RestaurantInfo implements Parcelable{
         this.img = img;
         this.reviewCount = reviewCount;
         this.isFavorite = isFavorite;
+        this.isForbidden = isForbidden;
         this.id = id;
+        this.location = location;
+        this.yelpWebsite = yelpWebsite;
     }
 
     public String getName() {
@@ -77,53 +85,14 @@ public class RestaurantInfo implements Parcelable{
 
     public boolean getIsFavorite() {return isFavorite;}
 
-    public void setIsFavorite(boolean isFavorite) {this.isFavorite = isFavorite;}
+    public boolean getIsForbidden() {return isForbidden;}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public void setIsFavorite(boolean isFavorite) {this.isFavorite = isFavorite;}
 
     public String getId() {return id;}
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
+    public LatLng getLocation() {return location;}
 
-    public RestaurantInfo(Parcel in){
-        this.name = in.readString();
-        this.address = in.readString();
-        this.phoneNumber = in.readString();
-        this.cuisine = in.readString();
-        this.rating = in.readDouble();
-        this.cost = in.readString();
-        this.distance = in.readString();
-        this.img = in.readString();
-        this.img = in.readString();
-    }
-
-    @Override
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeString(name);
-        out.writeString(address);
-        out.writeString(phoneNumber);
-        out.writeString(cuisine);
-        out.writeDouble(rating);
-        out.writeString(cost);
-        out.writeString(distance);
-        out.writeString(img);
-        out.writeString(reviewCount);
-    }
-
-    public static final Parcelable.Creator<RestaurantInfo> CREATOR =
-            new Parcelable.Creator<RestaurantInfo>() {
-        public RestaurantInfo createFromParcel(Parcel in) {
-            return new RestaurantInfo(in);
-        }
-
-        public RestaurantInfo[] newArray(int size) {
-            return new RestaurantInfo[size];
-        }
-    };
+    public String getWebsite() {return yelpWebsite;}
 }
 
