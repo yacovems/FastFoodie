@@ -17,7 +17,7 @@ import okhttp3.Response;
 
 public class YelpService {
 
-    public String setYelpRequest(Context context, double lat, double lon, int radius, String businessType) throws IOException {
+    public String setYelpRequest(Context context, double lat, double lon, int radius, int limit, int offset, String businessType) throws IOException {
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .build();
@@ -28,8 +28,8 @@ public class YelpService {
         urlBuilder.addQueryParameter("longitude", "" + lon);
         urlBuilder.addQueryParameter("radius", "" + radius);
         urlBuilder.addQueryParameter("open_now", "true");
-        urlBuilder.addQueryParameter("limit", "50");
-//        urlBuilder.addQueryParameter("offset", "1");
+        urlBuilder.addQueryParameter("limit", "" + limit);
+        urlBuilder.addQueryParameter("offset", "" + offset);
         String url = urlBuilder.build().toString();
 
         Request request= new Request.Builder()

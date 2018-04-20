@@ -29,8 +29,6 @@ public class GoogleMapsAPI extends FragmentActivity {
 
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
-    private int searchRadius;
-    private Activity activity;
     private LatLng currPosition;
 
     // The entry points to the Places API.
@@ -57,11 +55,7 @@ public class GoogleMapsAPI extends FragmentActivity {
 
     private static final String TAG = "GoogleMapsAPI";
 
-    public GoogleMapsAPI(Activity activity, Bundle savedInstanceState, int radius) {
-
-        this.activity = activity;
-        this.searchRadius = radius;
-
+    public GoogleMapsAPI(Activity activity, Bundle savedInstanceState) {
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -94,7 +88,7 @@ public class GoogleMapsAPI extends FragmentActivity {
     /**
      * Gets the current location of the device, and positions the map's camera.
      */
-    public void getDeviceLocation() {
+    public void getDeviceLocation(Activity activity) {
         /*
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
@@ -130,14 +124,14 @@ public class GoogleMapsAPI extends FragmentActivity {
     /**
      * Prompts the user for permission to use the device location.
      */
-    public void getLocationPermission() {
+    public void getLocationPermission(Activity activity) {
         Log.d(TAG, "INSIDE ------> getLocationPermission!");
 
         if (ContextCompat.checkSelfPermission(activity.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
-            updateLocationUI();
+            updateLocationUI(activity);
         } else {
             ActivityCompat.requestPermissions(activity,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -161,24 +155,24 @@ public class GoogleMapsAPI extends FragmentActivity {
                 }
             }
         }
-        updateLocationUI();
+        updateLocationUI(getParent());
     }
 
     /**
      * Updates the map's UI settings based on whether the user has granted location permission.
      */
-    public void updateLocationUI() {
+    public void updateLocationUI(Activity activity) {
         Log.d(TAG, "INSIDE ---> updateLocationUI!");
         try {
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
-                getDeviceLocation();
+                getDeviceLocation(activity);
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
                 mLastKnownLocation = null;
-                getLocationPermission();
+                getLocationPermission(activity);
             }
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());

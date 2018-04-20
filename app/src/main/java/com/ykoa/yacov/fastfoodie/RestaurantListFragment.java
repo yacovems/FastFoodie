@@ -36,12 +36,8 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private static final String TAG = "RestaurantListFragment";
     private RecyclerView mRecyclerView;
     private RestaurantListAdapter mAdapter;
-    private ArrayList<RestaurantInfo> mRestaurantsList;
     private FragmentCommunication mCallback;
     private SwipeController swipeController = null;
-    private HashMap<String, String> favorites = null;
-    private HashMap<String, String> forbidden = null;
-    private ProgressBar mProgressBar;
 
     @Nullable
     @Override
@@ -50,10 +46,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         View view = inflater.inflate(R.layout.restaurant_list_fragment,
                 container, false);
 
-//        mProgressBar = view.findViewById(R.id.progress_bar);
         mCallback.setIsInitialized(false);
-        mRestaurantsList = new ArrayList<>();
-
         return view;
     }
 
@@ -76,10 +69,12 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         mRecyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager =
                 new LinearLayoutManager(getActivity());
-        mAdapter = new RestaurantListAdapter(mRestaurantsList, getContext());
+        mAdapter = new RestaurantListAdapter(
+                mCallback.getTempRestaurantList(), getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
-        mAdapter.setOnItemClickListener(new RestaurantListAdapter.OnItemClickListener() {
+        mAdapter.setOnItemClickListener(
+                new RestaurantListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
 
@@ -87,7 +82,8 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
 
             @Override
             public void onCallClick(int position) {
-                RestaurantInfo restaurant = mRestaurantsList.get(position);
+                RestaurantInfo restaurant = mCallback.getTempRestaurantList()
+                        .get(position);
 
                 // If phone number not available, don't do anything.
                 if (restaurant.getPhoneNumber().equals("phone not available")) {return;}
@@ -105,7 +101,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             public void onFavoriteClick(int position) {
 
                 HashMap<String, Object> user = new HashMap<>();
-                RestaurantInfo restaurant = mRestaurantsList.get(position);
+                RestaurantInfo restaurant = mCallback.getTempRestaurantList()
+                        .get(position);
+                HashMap<String, String> favorites = mCallback.getFavorites();
 
                 if (restaurant.getIsFavorite()) {
                     // Remove restaurant from favorites
@@ -161,7 +159,6 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     }
 
     public void updateRecyclerView() {
-        updateSearchParameters();
         buildRecyclerView(getView());
         if (!mCallback.getIsInitialized()) {
             // Swipe recyclerView items
@@ -170,14 +167,10 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         }
     }
 
-    private void updateSearchParameters() {
-        favorites = mCallback.getFavorites();
-        forbidden = mCallback.getForbidden();
-        mRestaurantsList = mCallback.getTempRestaurantList();
-    }
-
     public void removeItem(int position) {
+        ArrayList<RestaurantInfo> mRestaurantsList = mCallback.getTempRestaurantList();
         RestaurantInfo restaurant = mRestaurantsList.get(position);
+        HashMap<String, String> forbidden = mCallback.getForbidden();
 
         // Add restaurant to forbidden
         // and update Firebase\

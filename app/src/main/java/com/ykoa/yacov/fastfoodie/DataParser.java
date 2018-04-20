@@ -45,10 +45,7 @@ public class DataParser {
     private ArrayList<RestaurantInfo> getPlaces(JSONArray jsonArray) {
 
         int placesCount = jsonArray.length();
-//        List<HashMap<String, String>> placesList = new ArrayList<>();
-
         ArrayList<RestaurantInfo> placesList = new ArrayList<>();
-
         RestaurantInfo placeMap = null;
 
         for (int i = 0; i < placesCount; i++) {

@@ -164,7 +164,6 @@ public class LoginActivity extends AppCompatActivity{
                             user.put("cost", 4);
                             user.put("distance", 300);
                             user.put("rating", 2);
-                            user.put("cuisine", "All");
                             user.put("favorites", new HashMap<String, String>());
                             user.put("forbidden", new HashMap<String, String>());
 

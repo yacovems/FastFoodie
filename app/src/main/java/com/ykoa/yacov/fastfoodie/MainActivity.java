@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
@@ -22,9 +23,12 @@ import android.view.MenuItem;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
@@ -64,19 +68,18 @@ public class MainActivity extends AppCompatActivity implements
     private final int NUM_FILTER_BUTTONS = 4;
     private final int NUM_POPUP_BUTTONS = 11;
     private final int NUM_CUISINE_BUTTONS = 18;
-    private final String DEFAULT_SEARCH_CUISINE = "All";
 
     private int searchRadius = DEFAULT_SEARCH_RADIUS;
     private int searchCost = DEFAULT_SEARCH_COST;
     private int searchRating = DEFAULT_SEARCH_RATING;
-    private String searchCuisine = DEFAULT_SEARCH_CUISINE;
 
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
     private ArrayList<RestaurantInfo> mTempRestaurantList;
     private ImageButton[] filterButtons;
     private ImageButton[] popupButtons;
-    private Button sortButton;
+    FloatingActionButton[] sortButtons;
+    private FloatingActionButton sortButton;
     private Button[] cuisineButtons;
     private boolean[] cuisineButtonState;
     private int filterBtnID;
@@ -146,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements
                                     searchCost = Integer.parseInt(userDoc.getData().get("cost").toString());
                                     searchRadius = Integer.parseInt(userDoc.getData().get("distance").toString());
                                     searchRating = Integer.parseInt(userDoc.getData().get("rating").toString());
-                                    searchCuisine = userDoc.getData().get("cuisine").toString();
                                     favorites = (HashMap<String, String>) userDoc.getData().get("favorites");
                                     forbidden = (HashMap<String, String>) userDoc.getData().get("forbidden");
 
@@ -184,14 +186,59 @@ public class MainActivity extends AppCompatActivity implements
                 getResources()).execute(userImage);
     }
 
+    private void animateSortButtons(boolean visible) {
+        final Animation load = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_in_from_right);
+        final Animation remove = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_out_to_right);
+
+        for (int i = 1; i < sortButtons.length; i++) {
+            if (!visible) {
+                sortButtons[i].startAnimation(load);
+                sortButtons[i].setVisibility(View.VISIBLE);
+            } else {
+                sortButtons[i].startAnimation(remove);
+                sortButtons[i].setVisibility(View.GONE);
+            }
+        }
+    }
+
     private void setUpFilterButtons() {
         // Initialize sort button
-        sortButton = (Button) findViewById(R.id.sort_btn);
-        // Hide sort button
-        sortButton.setVisibility(View.GONE);
-        sortButton.setOnClickListener(new View.OnClickListener() {
+        sortButtons = new FloatingActionButton[4];
+        sortButtons[0] = (FloatingActionButton) findViewById(R.id.sort_btn);
+        sortButtons[1] = (FloatingActionButton) findViewById(R.id.distance_sort_btn);
+        sortButtons[2] = (FloatingActionButton) findViewById(R.id.price_sort_btn);
+        sortButtons[3] = (FloatingActionButton) findViewById(R.id.rating_sort_btn);
+
+
+
+        sortButtons[0].setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Make Buttons visible
+                animateSortButtons(false);
+            }
+        });
+
+        sortButtons[1].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                animateSortButtons(true);
+
+            }
+        });
+
+        sortButtons[2].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                animateSortButtons(true);
+
+            }
+        });
+
+        sortButtons[3].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                animateSortButtons(true);
 
             }
         });
@@ -427,7 +474,8 @@ public class MainActivity extends AppCompatActivity implements
                         cuisineButtonState[buttonNum] = true;
                         cuisines.add(cuisineName.toLowerCase());
                     }
-                    
+
+
                     // Update map
                     MVF.drawCircle(deviceLocation);
                     MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
@@ -782,11 +830,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void showSortButton() {
-        sortButton.setVisibility(View.VISIBLE);
+        sortButtons[0].setVisibility(View.VISIBLE);
+        Animation load = AnimationUtils.loadAnimation(this, R.anim.slide_in_up);
+        sortButtons[0].startAnimation(load);
     }
 
     @Override
     public void hideSortButton() {
-        sortButton.setVisibility(View.GONE);
+        for (int i = 0; i < sortButtons.length; i++) {
+            sortButtons[i].setVisibility(View.GONE);
+        }
     }
 }

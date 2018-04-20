@@ -17,6 +17,8 @@ package com.ykoa.yacov.fastfoodie;
         import android.widget.ImageView;
         import android.widget.TextView;
 
+        import com.google.android.gms.maps.CameraUpdate;
+        import com.google.android.gms.maps.CameraUpdateFactory;
         import com.google.android.gms.maps.GoogleMap;
         import com.google.android.gms.maps.OnMapReadyCallback;
         import com.google.android.gms.maps.SupportMapFragment;
@@ -24,6 +26,7 @@ package com.ykoa.yacov.fastfoodie;
         import com.google.android.gms.maps.model.Circle;
         import com.google.android.gms.maps.model.CircleOptions;
         import com.google.android.gms.maps.model.LatLng;
+        import com.google.android.gms.maps.model.LatLngBounds;
         import com.google.android.gms.maps.model.MapStyleOptions;
         import com.google.android.gms.maps.model.Marker;
         import com.google.android.gms.maps.model.MarkerOptions;
@@ -46,17 +49,10 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         GoogleMap.OnMapLoadedCallback, OnMapReadyCallback {
 
     private static final String TAG = "MapViewFragment";
+    private boolean onlyFavorites;
     private FragmentCommunication mCallback;
-    private int searchRadius;
-    private int searchCost;
-    private int searchRating;
-    private HashMap<String, String> favorites = null;
-    private HashMap<String, String> forbidden = null;
     GoogleMapsAPI mMapAPI;
     GoogleMap mMap;
-    Location location = null;
-
-    private boolean onlyFavorites;
 
     @Nullable
     @Override
@@ -65,17 +61,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         View view = inflater.inflate(R.layout.map_fragment,
                 container, false);
 
-
-        // Retrieve tasks lists from bundle
-//        Bundle data = getArguments();
-//        if (data != null) {getBundleArgs(data);}
-
-        // Retrieves the search radius value
-        // (default or set by the user)
-        searchRadius = mCallback.getRadius();
-
         // Create a map
-         mMapAPI = new GoogleMapsAPI(getActivity(), savedInstanceState, searchRadius);
+         mMapAPI = new GoogleMapsAPI(getActivity(), savedInstanceState);
 
         // Build the map
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
@@ -148,7 +135,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         mMapAPI.setMap(mMap);
 
         // Prompt the user for permission.
-        mMapAPI.getLocationPermission();
+        mMapAPI.getLocationPermission(getActivity());
 
         // Callback for when map is loaded
         mMap.setOnMapLoadedCallback(this);
@@ -158,7 +145,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     public void onMapLoaded() {
         Log.d(TAG, "INSIDE ----------> onMApLoaded");
 
-        location = mMapAPI.getLocation();
+        Location location = mMapAPI.getLocation();
         LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
         mCallback.setLatLng(point);
         mCallback.setMap(mMap);
@@ -177,10 +164,9 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     // on the search radius size.
     public void drawCircle(LatLng point) {
         mMap.clear();
-        searchRadius = mCallback.getRadius();
         mMap.addCircle(new CircleOptions()
                 .center(point)
-                .radius(searchRadius)
+                .radius(mCallback.getRadius())
                 .strokeColor(Color.rgb(102, 40, 0))
                 .fillColor(Color.TRANSPARENT));
     }
@@ -198,19 +184,31 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
         @Override
         protected ArrayList<RestaurantInfo> doInBackground(Object... params) {
+
             p = (LatLng) params[0];
             final YelpService yelpService = new YelpService();
-            String jsonData = null;
-            ArrayList<RestaurantInfo> placesList = null;
-            try {
-                jsonData = yelpService.setYelpRequest(getContext(),
-                        p.latitude, p.longitude, searchRadius,  "restaurants");
 
-                System.out.println("-------------------> total of restaurants found in this area: " + new JSONObject(jsonData).getInt("total"));
+
+            final int YELP_API_LIMIT = 50;
+            final int MAX_OFFSET_NUM = 4;
+            ArrayList<String> jsonData = new ArrayList<>();
+            ArrayList<RestaurantInfo> placesList = new ArrayList<>();
+
+            try {
+                int totalRestaurants = 0;
+                for (int i = 0; i < MAX_OFFSET_NUM; i++) {
+                    jsonData.add(yelpService.setYelpRequest(getContext(),
+                            p.latitude, p.longitude, mCallback.getRadius(), YELP_API_LIMIT, i * YELP_API_LIMIT, "restaurants"));
+                    totalRestaurants = new JSONObject(jsonData.get(i)).getInt("total");
+                    if (totalRestaurants <= i * YELP_API_LIMIT) {break;}
+                }
+                System.out.println("-------------------> total of restaurants found in this area: " + totalRestaurants);
 
                 // Parse the Yelp API response
                 DataParser dataParser = new DataParser(mCallback.getFavorites(), mCallback.getForbidden());
-                placesList = dataParser.parse(jsonData);
+                for (String json : jsonData) {
+                    placesList.addAll(dataParser.parse(json));
+                }
                 mCallback.setRestaurantList(placesList);
 
             } catch (IOException e) {
@@ -233,11 +231,6 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     public void showNearbyPlaces(ArrayList<RestaurantInfo> placesList, boolean onlyFavorites) {
 
         Log.d("showNearByPlaces", "size of near by places list ------> " + placesList.size());
-        searchCost = mCallback.getCost();
-        searchRating = mCallback.getRating();
-        searchRadius = mCallback.getRadius();
-        favorites = mCallback.getFavorites();
-        forbidden = mCallback.getForbidden();
 
         final double METERS_TO_MILES = 1609.344;
 
@@ -253,7 +246,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
             // If outside the search radius
             String distance = restaurant.getDistance();
-            if (Double.parseDouble(distance) > searchRadius / METERS_TO_MILES) {continue;}
+            if (Double.parseDouble(distance) > mCallback.getRadius() / METERS_TO_MILES) {continue;}
 
             // If over the search cost
             String cost = restaurant.getCost();
@@ -262,10 +255,10 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             else if (cost.equals("$$")) {cInt = 2;}
             else if (cost.equals("$$$")) {cInt = 3;}
             else if (cost.equals("$$$$")) {cInt = 4;}
-            if (cInt > searchCost) {continue;}
+            if (cInt > mCallback.getCost()) {continue;}
 
             // If below the search rating
-            if (restaurant.getRating() < searchRating) {continue;}
+            if (restaurant.getRating() < mCallback.getRating()) {continue;}
 
             // Check if current restaurant is in
             // the user's favorites or forbidden
@@ -288,6 +281,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             markerOptions.title(restaurant.getName());
             markerOptions.snippet(restaurant.getCuisine() + " - " + restaurant.getRating());
 
+            // Check which pin color should be displayed on the map
             if (restaurant.getIsFavorite()) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
             } else if (restaurant.getRating() >= 4) {
@@ -304,6 +298,10 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             // Add marker onto the map view
             mMap.addMarker(markerOptions);
         }
+
+        // Set camera to show all markers
+        setCamera();
+
         // Set restaurant list
         mCallback.setTempRestaurantList(tempList);
 
@@ -311,16 +309,22 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         mCallback.updateRecyclerView();
     }
 
+    private void setCamera() {
+        LatLngBounds.Builder locationBounds = new LatLngBounds.Builder();
+        LatLng loc = mCallback.getLatLng();
+        double lat = loc.latitude;
+        double lon = loc.longitude;
+        double scale = mCallback.getRadius() * 0.00001;
+        locationBounds.include(new LatLng(lat + scale, lon + scale));
+        locationBounds.include(new LatLng(lat - scale, lon + scale));
+        locationBounds.include(new LatLng(lat + scale, lon - scale));
+        locationBounds.include(new LatLng(lat - scale, lon - scale));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(locationBounds.build(), 10));
+    }
+
     @Override
     public void fragmentBecameVisible() {
         // Hide sort button
         mCallback.hideSortButton();
-
-        // Update lists and search parameters
-        favorites = mCallback.getFavorites();
-        forbidden = mCallback.getForbidden();
-        searchRadius = mCallback.getRadius();
-        searchCost = mCallback.getCost();
-        searchRating = mCallback.getRating();
     }
 }
