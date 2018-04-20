@@ -41,7 +41,7 @@ public class GoogleMapsAPI extends FragmentActivity {
     // A default location (San Francisco, USA) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(37.7749, 122.4194);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 10;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 

@@ -52,7 +52,7 @@ public class DataParser {
             try {
                 placeMap = getPlace((JSONObject) jsonArray.get(i));
                 if (placeMap.getName().equals("no name") ||
-                        placeMap.getRating() == -1) {
+                        placeMap.getRating().equals("-1")) {
                     continue;
                 }
 
@@ -79,7 +79,7 @@ public class DataParser {
         String imgURL = "";
         String distance = "";
 
-        double rating = 0;
+        String rating = "";
         LatLng latLng = null;
 
         try {
@@ -96,7 +96,8 @@ public class DataParser {
             website = restaurantJSON.optString("url", "https://www.yelp.com/");
 
             // Get rating
-            rating = restaurantJSON.optDouble("rating", -1);
+            double r = restaurantJSON.optDouble("rating", -1);
+            rating = "" + r;
 
             // Get coordinates
             double latitude = 0;

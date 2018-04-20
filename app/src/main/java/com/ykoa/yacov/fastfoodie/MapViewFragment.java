@@ -258,7 +258,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             if (cInt > mCallback.getCost()) {continue;}
 
             // If below the search rating
-            if (restaurant.getRating() < mCallback.getRating()) {continue;}
+            double rating = Double.parseDouble(restaurant.getRating());
+            if (rating < mCallback.getRating()) {continue;}
 
             // Check if current restaurant is in
             // the user's favorites or forbidden
@@ -284,9 +285,9 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             // Check which pin color should be displayed on the map
             if (restaurant.getIsFavorite()) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-            } else if (restaurant.getRating() >= 4) {
+            } else if (rating >= 4) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            } else if (restaurant.getRating() >= 3) {
+            } else if (rating >= 3) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
             } else {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));

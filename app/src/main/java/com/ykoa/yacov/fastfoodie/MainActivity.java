@@ -50,6 +50,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,8 +79,7 @@ public class MainActivity extends AppCompatActivity implements
     private ArrayList<RestaurantInfo> mTempRestaurantList;
     private ImageButton[] filterButtons;
     private ImageButton[] popupButtons;
-    FloatingActionButton[] sortButtons;
-    private FloatingActionButton sortButton;
+    private FloatingActionButton[] sortButtons;
     private Button[] cuisineButtons;
     private boolean[] cuisineButtonState;
     private int filterBtnID;
@@ -152,9 +152,10 @@ public class MainActivity extends AppCompatActivity implements
                                     favorites = (HashMap<String, String>) userDoc.getData().get("favorites");
                                     forbidden = (HashMap<String, String>) userDoc.getData().get("forbidden");
 
-                                    // Create filter and cuisine buttons
+                                    // Create filter, cuisine, and sort buttons
                                     setUpFilterButtons();
                                     setUpCuisineButtons();
+                                    setUpSortButtons();
 
                                     // Set navigation drawer
                                     setUpNavDrawer(toolbar);
@@ -186,6 +187,46 @@ public class MainActivity extends AppCompatActivity implements
                 getResources()).execute(userImage);
     }
 
+
+
+    private void setUpSortButtons() {
+        // Initialize sort button
+        sortButtons = new FloatingActionButton[4];
+        sortButtons[0] = (FloatingActionButton) findViewById(R.id.sort_btn);
+        sortButtons[1] = (FloatingActionButton) findViewById(R.id.distance_sort_btn);
+        sortButtons[2] = (FloatingActionButton) findViewById(R.id.price_sort_btn);
+        sortButtons[3] = (FloatingActionButton) findViewById(R.id.rating_sort_btn);
+
+       for (int i = 0; i < sortButtons.length; i++) {makeSortButton(i);}
+    }
+
+    private void makeSortButton(final int buttonNum) {
+        sortButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (buttonNum == 0) {
+                    animateSortButtons(false);
+                } else {
+                    animateSortButtons(true);
+
+                    switch (buttonNum) {
+                        case 1:
+                            Collections.sort(mTempRestaurantList, new CustomComparator(buttonNum));
+                            break;
+                        case 2:
+                            Collections.sort(mTempRestaurantList, new CustomComparator(buttonNum));
+                            break;
+                        case 3:
+                            Collections.sort(mTempRestaurantList, new CustomComparator(buttonNum));
+                            break;
+                    }
+                    updateRecyclerView();
+                }
+            }
+        });
+    }
+
     private void animateSortButtons(boolean visible) {
         final Animation load = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_in_from_right);
         final Animation remove = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_out_to_right);
@@ -202,47 +243,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setUpFilterButtons() {
-        // Initialize sort button
-        sortButtons = new FloatingActionButton[4];
-        sortButtons[0] = (FloatingActionButton) findViewById(R.id.sort_btn);
-        sortButtons[1] = (FloatingActionButton) findViewById(R.id.distance_sort_btn);
-        sortButtons[2] = (FloatingActionButton) findViewById(R.id.price_sort_btn);
-        sortButtons[3] = (FloatingActionButton) findViewById(R.id.rating_sort_btn);
-
-
-
-        sortButtons[0].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Make Buttons visible
-                animateSortButtons(false);
-            }
-        });
-
-        sortButtons[1].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                animateSortButtons(true);
-
-            }
-        });
-
-        sortButtons[2].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                animateSortButtons(true);
-
-            }
-        });
-
-        sortButtons[3].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                animateSortButtons(true);
-
-            }
-        });
-
         // 4 filter buttons
         filterButtons = new ImageButton[NUM_FILTER_BUTTONS];
 

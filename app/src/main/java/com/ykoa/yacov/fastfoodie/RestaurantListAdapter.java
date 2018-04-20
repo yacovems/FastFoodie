@@ -138,25 +138,26 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
 
         // Get the correct rating image
         Bitmap image = null;
-        if (currItem.getRating() < 1) {
+        double rating = Double.parseDouble(currItem.getRating());
+        if (rating < 1) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_0);
-        } else if (currItem.getRating() == 1) {
+        } else if (rating == 1) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_1);
-        } else if (currItem.getRating() < 2) {
+        } else if (rating < 2) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_1_half);
-        } else if (currItem.getRating() == 2) {
+        } else if (rating == 2) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_2);
-        } else if (currItem.getRating() < 3) {
+        } else if (rating < 3) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_2_half);
-        } else if (currItem.getRating() == 3) {
+        } else if (rating == 3) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_3);
-        } else if (currItem.getRating() < 4) {
+        } else if (rating < 4) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_3_half);
-        } else if (currItem.getRating() == 4) {
+        } else if (rating == 4) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_4);
-        } else if (currItem.getRating() < 5) {
+        } else if (rating < 5) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_4_half);
-        } else if (currItem.getRating() == 5) {
+        } else if (rating == 5) {
             image = BitmapFactory.decodeResource(context.getResources(), R.drawable.stars_small_5);
         }
 

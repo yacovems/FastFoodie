@@ -1,11 +1,5 @@
 package com.ykoa.yacov.fastfoodie;
 
-
-import android.graphics.Bitmap;
-import android.os.Parcel;
-        import android.os.Parcelable;
-import android.widget.ImageView;
-
 import com.google.android.gms.maps.model.LatLng;
 
 /**
@@ -18,7 +12,7 @@ public class RestaurantInfo {
     private String address;
     private String phoneNumber;
     private String cuisine;
-    private double rating;
+    private String rating;
     private String cost;
     private String img;
     private String distance;
@@ -33,9 +27,10 @@ public class RestaurantInfo {
     public RestaurantInfo() {}
 
     public RestaurantInfo(String name, String address, String phoneNumber,
-                          String cuisine, double rating, String cost,
+                          String cuisine, String rating, String cost,
                           String distance, String img, String reviewCount,
-                          boolean isFavorite, boolean isForbidden, String id, LatLng location, String yelpWebsite) {
+                          boolean isFavorite, boolean isForbidden, String id,
+                          LatLng location, String yelpWebsite) {
 
         this.name = name;
         this.address = address;
@@ -69,7 +64,7 @@ public class RestaurantInfo {
         return cuisine;
     }
 
-    public double getRating() {
+    public String getRating() {
         return rating;
     }
 
