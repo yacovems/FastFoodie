@@ -1,6 +1,8 @@
 package com.ykoa.yacov.fastfoodie;
 
         import android.content.Context;
+        import android.content.res.Resources;
+        import android.graphics.Bitmap;
         import android.graphics.Color;
         import android.location.Location;
         import android.os.AsyncTask;
@@ -22,8 +24,13 @@ package com.ykoa.yacov.fastfoodie;
         import com.google.android.gms.maps.model.Circle;
         import com.google.android.gms.maps.model.CircleOptions;
         import com.google.android.gms.maps.model.LatLng;
+        import com.google.android.gms.maps.model.MapStyleOptions;
         import com.google.android.gms.maps.model.Marker;
         import com.google.android.gms.maps.model.MarkerOptions;
+
+        import org.json.JSONException;
+        import org.json.JSONObject;
+
         import java.io.IOException;
         import java.text.DecimalFormat;
         import java.util.ArrayList;
@@ -97,6 +104,20 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
     public void onMapReady(GoogleMap googleMap) {
         Log.d(TAG, "INSIDE -----------> onMApReady");
         mMap = googleMap;
+
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            getContext(), R.raw.style_json));
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
 
         // Use a custom info window adapter to handle multiple lines of text in the
         // info window contents.
@@ -185,12 +206,16 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 jsonData = yelpService.setYelpRequest(getContext(),
                         p.latitude, p.longitude, searchRadius,  "restaurants");
 
+                System.out.println("-------------------> total of restaurants found in this area: " + new JSONObject(jsonData).getInt("total"));
+
                 // Parse the Yelp API response
                 DataParser dataParser = new DataParser(mCallback.getFavorites(), mCallback.getForbidden());
                 placesList = dataParser.parse(jsonData);
                 mCallback.setRestaurantList(placesList);
 
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
             return placesList;
@@ -210,20 +235,25 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         Log.d("showNearByPlaces", "size of near by places list ------> " + placesList.size());
         searchCost = mCallback.getCost();
         searchRating = mCallback.getRating();
+        searchRadius = mCallback.getRadius();
         favorites = mCallback.getFavorites();
         forbidden = mCallback.getForbidden();
+
+        final double METERS_TO_MILES = 1609.344;
 
         // Create arrayList of restaurants
         ArrayList<RestaurantInfo> tempList =  new ArrayList<>();
 
         for (int i = 0; i < placesList.size(); i++) {
 
+            boolean cuisineExists = false;
+
             MarkerOptions markerOptions = new MarkerOptions();
             RestaurantInfo restaurant = placesList.get(i);
 
             // If outside the search radius
             String distance = restaurant.getDistance();
-            if (Double.parseDouble(distance) > searchRadius) {continue;}
+            if (Double.parseDouble(distance) > searchRadius / METERS_TO_MILES) {continue;}
 
             // If over the search cost
             String cost = restaurant.getCost();
@@ -242,11 +272,22 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             if (restaurant.getIsForbidden()) {continue;}
             if (!restaurant.getIsFavorite() && onlyFavorites) {continue;}
 
+            // Check if the restaurant's cuisine is in the cuisines set.
+            // If it is not, don't show it on the map.
+            HashSet<String> cuisines = mCallback.getCuisines();
+            if (!cuisines.isEmpty()) {
+
+                for (String title : restaurant.getCuisine().toLowerCase().split(" ")) {
+                    if (cuisines.contains(title)) {cuisineExists = true;}
+                }
+                if (!cuisineExists && !cuisines.contains(restaurant.getCuisine().toLowerCase())) {continue;}
+            }
 
             // Create marker on the map
             markerOptions.position(restaurant.getLocation());
             markerOptions.title(restaurant.getName());
             markerOptions.snippet(restaurant.getCuisine() + " - " + restaurant.getRating());
+
             if (restaurant.getIsFavorite()) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
             } else if (restaurant.getRating() >= 4) {

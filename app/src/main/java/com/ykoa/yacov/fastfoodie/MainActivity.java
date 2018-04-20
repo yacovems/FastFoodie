@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements
     private ImageButton[] popupButtons;
     private Button sortButton;
     private Button[] cuisineButtons;
+    private boolean[] cuisineButtonState;
     private int filterBtnID;
     private boolean hasChanged;
     private GoogleMap mMap = null;
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private Toolbar toolbar;
     private boolean onlyFavorites;
+    private HashSet<String> cuisines;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +114,9 @@ public class MainActivity extends AppCompatActivity implements
         // Initialize array list of restaurants.
         mRestaurantList = new ArrayList<>();
         mTempRestaurantList = new ArrayList<>();
+
+        // Initialize cuisine HashSet
+        cuisines = new HashSet<>();
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = findViewById(R.id.container);
@@ -283,6 +288,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void setUpCuisineButtons() {
         cuisineButtons = new Button[NUM_CUISINE_BUTTONS];
+        cuisineButtonState = new boolean[NUM_CUISINE_BUTTONS];
 
         Button b = (Button) findViewById(R.id.all_btn);
         makeCuisineButton(b,0);
@@ -351,6 +357,8 @@ public class MainActivity extends AppCompatActivity implements
             }
         }
 
+        // "All" button (buttonNum == 0)
+        // Rest of cuisine buttons
         if (buttonNum == 0) {
 
             cuisineButtons[buttonNum].setOnClickListener(new View.OnClickListener() {
@@ -358,11 +366,21 @@ public class MainActivity extends AppCompatActivity implements
                 public void onClick(View view) {
                     for (int i = 0; i < cuisineButtons.length; i++) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            cuisineButtons[i].setBackgroundTintList(ContextCompat
-                                    .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                            if (i == 0) {
+                                cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
+                                        .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                            } else {
+                                cuisineButtons[i].setBackgroundTintList(ContextCompat
+                                        .getColorStateList(getApplicationContext(), R.color.white));
+                            }
                         }
                     }
+                    cuisines.clear();
 
+                    // Update map
+                    MVF.drawCircle(deviceLocation);
+                    MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
+                    updateRecyclerView();
                 }
             });
 
@@ -372,18 +390,51 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onClick(View view) {
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
-                                .getColorStateList(getApplicationContext(), R.color.colorPrimary));
-                    }
+                    String cuisineName = cuisineButtons[buttonNum].getText().toString();
 
+                    // Check if cuisine button is already clicked or not
+                    if (cuisineButtonState[buttonNum]) {
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            // Make the clicked button gray
+                            cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
+                                    .getColorStateList(getApplicationContext(), R.color.white));
+                        }
+
+                        // Remove the cuisine from the cuisines set
+                        cuisineButtonState[buttonNum] = false;
+                        cuisines.remove(cuisineName.toLowerCase());
+                        if (cuisines.isEmpty()) {
+                            // If no cuisine filters are in use, highlight "All"
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                cuisineButtons[0].setBackgroundTintList(ContextCompat
+                                        .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                            }
+                        }
+
+
+                    } else {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            // Make "All" button gray
+                            cuisineButtons[0].setBackgroundTintList(ContextCompat
+                                    .getColorStateList(getApplicationContext(), R.color.white));
+
+                            // Make the clicked button colored
+                            cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
+                                    .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                        }
+
+                        cuisineButtonState[buttonNum] = true;
+                        cuisines.add(cuisineName.toLowerCase());
+                    }
+                    
+                    // Update map
+                    MVF.drawCircle(deviceLocation);
+                    MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
+                    updateRecyclerView();
                 }
             });
-
         }
-
-
-
     }
 
     private void makePopupButton(final int radius,
@@ -611,6 +662,16 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void setTempRestaurantList(ArrayList<RestaurantInfo> list) {
         mTempRestaurantList = list;
+    }
+
+    @Override
+    public void setCuisines(HashSet<String> cuisines) {
+        this.cuisines = cuisines;
+    }
+
+    @Override
+    public HashSet<String> getCuisines() {
+        return cuisines;
     }
 
     @Override

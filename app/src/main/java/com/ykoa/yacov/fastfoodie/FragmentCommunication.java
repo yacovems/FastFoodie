@@ -18,6 +18,8 @@ public interface FragmentCommunication {
     int getRadius();
     void setRestaurantList(ArrayList<RestaurantInfo> list);
     void setTempRestaurantList(ArrayList<RestaurantInfo> list);
+    void setCuisines(HashSet<String> cuisines);
+    HashSet<String> getCuisines();
     ArrayList<RestaurantInfo> getRestaurantList();
     ArrayList<RestaurantInfo> getTempRestaurantList();
     void setIsInitialized(boolean changed);

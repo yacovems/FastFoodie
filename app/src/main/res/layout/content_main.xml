@@ -29,108 +29,126 @@
                 android:id="@+id/all_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="All"/>
 
             <Button
                 android:id="@+id/breakfast_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Breakfast"/>
 
             <Button
                 android:id="@+id/brunch_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Brunch"/>
 
             <Button
                 android:id="@+id/coffee_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Coffee"/>
 
             <Button
                 android:id="@+id/american_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="American"/>
 
             <Button
                 android:id="@+id/brazilian_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Brazilian"/>
 
             <Button
                 android:id="@+id/chinese_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Chinese"/>
 
             <Button
                 android:id="@+id/french_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="French"/>
 
             <Button
                 android:id="@+id/greek_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Greek"/>
 
             <Button
                 android:id="@+id/indian_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Indian"/>
 
             <Button
                 android:id="@+id/italian_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Italian"/>
 
             <Button
                 android:id="@+id/japanese_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Japanese"/>
 
             <Button
                 android:id="@+id/korean_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Korean"/>
 
             <Button
                 android:id="@+id/mexican_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Mexican"/>
 
             <Button
                 android:id="@+id/middle_eastern_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Middle Eastern"/>
 
             <Button
                 android:id="@+id/russian_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Russian"/>
 
             <Button
                 android:id="@+id/spanish_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Spanish"/>
 
             <Button
                 android:id="@+id/thai_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
                 android:text="Thai"/>
 
         </LinearLayout>
