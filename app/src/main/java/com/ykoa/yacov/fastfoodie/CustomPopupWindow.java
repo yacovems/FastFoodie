@@ -6,10 +6,14 @@ import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,18 +27,29 @@ public class CustomPopupWindow {
     private View layout = null;
     private int popupWidth;
     private int popupHeight;
+    private int deviceWidth;
+    private int deviceHeight;
     private PopupWindow popup;
     private ArrayList<ImageButton> buttons;
-    private ArrayList<ImageView> images;
+    private Activity context;
+    private ImageView tutorialImg = null;
+    private ArrayList<Integer> images;
+    private int imgCount;
 
-    public CustomPopupWindow(int width, int height, Activity context, View layout) {
+
+    public CustomPopupWindow(int width, int height, int deviceWidth,
+                             int deviceHeight, Activity context, View layout) {
 
         buttons = new ArrayList<>();
         images = new ArrayList<>();
+        imgCount = 0;
 
         popupWidth = width;
         popupHeight = height;
         this.layout = layout;
+        this.deviceWidth = deviceWidth;
+        this.deviceHeight = deviceHeight;
+        this.context = context;
 
         // Creating the PopupWindow
         popup = new PopupWindow(context);
@@ -43,52 +58,71 @@ public class CustomPopupWindow {
         popup.setWidth(popupWidth);
         popup.setHeight(popupHeight);
         popup.setFocusable(true);
-        popup.showAtLocation(layout, Gravity.NO_GRAVITY, 0, 0);
-
-//        ImageButton leftArrow = (ImageButton) layout.findViewById(R.id.left_arrow_btn);
-//        ImageButton rightArrow = (ImageButton) layout.findViewById(R.id.right_arrow_btn);
-//
-//        leftArrow.setOnClickListener(new View.OnClickListener(){
-//
-//            @Override
-//            public void onClick(View view) {
-//
-//            }
-//        });
-//
-//        rightArrow.setOnClickListener(new View.OnClickListener(){
-//
-//            @Override
-//            public void onClick(View view) {
-//
-//            }
-//        });
+        popup.showAtLocation(layout, Gravity.NO_GRAVITY, (deviceWidth - width) / 2, (deviceHeight - height) / 2);
     }
 
-    public void addButton(ImageButton button) {
-        buttons.add(button);
-//        button.setOnClickListener(new View.OnClickListener(){
-//
-//            @Override
-//            public void onClick(View view) {
-//                System.out.println("-------------99999999999999999999-------------");
-//            }
-//        });
+    public void showName(String name) {
+        Animation load = AnimationUtils.loadAnimation(context, R.anim.slide_in_up);
+
+        TextView userName = (TextView) layout.findViewById(R.id.user_name_text_view);
+        userName.setText(name);
+        userName.setVisibility(View.VISIBLE);
+        userName.startAnimation(load);
     }
 
-    public ImageButton getButton(int x) {
-        return buttons.get(x);
+    public void showButtons() {
+        Animation load = AnimationUtils.loadAnimation(context, R.anim.slide_in_up);
+
+        ImageButton leftArrow = (ImageButton) layout.findViewById(R.id.left_arrow_btn);
+        ImageButton rightArrow = (ImageButton) layout.findViewById(R.id.right_arrow_btn);
+
+        leftArrow.setVisibility(View.VISIBLE);
+        rightArrow.setVisibility(View.VISIBLE);
+
+        leftArrow.startAnimation(load);
+        rightArrow.startAnimation(load);
+
+        leftArrow.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                if (imgCount > 0) {
+                    imgCount--;
+                }
+                switchImg(images.get(imgCount));
+            }
+        });
+
+        rightArrow.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                if (imgCount < images.size() - 1) {
+                    imgCount++;
+                }
+                switchImg(images.get(imgCount));
+            }
+        });
     }
 
-    public void addText(String label) {
-
+    public void showImg() {
+        Animation load = AnimationUtils.loadAnimation(context, R.anim.slide_in_up);
+        tutorialImg = (ImageView) layout.findViewById(R.id.tutorial_image_view);
+        tutorialImg.setImageResource(images.get(0));
+        imgCount++;
+        tutorialImg.setVisibility(View.VISIBLE);
+        tutorialImg.startAnimation(load);
     }
 
-    public void addImage() {
-
+    public void switchImg(int img) {
+        Animation remove = AnimationUtils.loadAnimation(context, R.anim.fade_out);
+        tutorialImg.startAnimation(remove);
+        Animation load = AnimationUtils.loadAnimation(context, R.anim.fade_in);
+        tutorialImg.setImageResource(img);
+        tutorialImg.startAnimation(load);
     }
 
-    public PopupWindow getPopup() {
-        return popup;
+    public void addImages(int img) {
+        images.add(img);
     }
 }

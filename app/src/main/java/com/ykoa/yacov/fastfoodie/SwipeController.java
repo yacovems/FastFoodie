@@ -19,7 +19,6 @@ import static android.support.v7.widget.helper.ItemTouchHelper.*;
 
 enum ButtonsState {
     GONE,
-    LEFT_VISIBLE,
     RIGHT_VISIBLE
 }
 
@@ -31,18 +30,18 @@ public class SwipeController extends Callback{
     private RecyclerView.ViewHolder currentItemViewHolder = null;
     private SwipeControllerActions buttonsActions = null;
     private static final float buttonWidth = 200;
-    private boolean favorite;
+    private boolean removeRes;
     private Resources resources;
 
-    public SwipeController(SwipeControllerActions buttonsActions, boolean favorite, Resources resources) {
+    public SwipeController(SwipeControllerActions buttonsActions, boolean removeRes, Resources resources) {
         this.buttonsActions = buttonsActions;
-        this.favorite = favorite;
+        this.removeRes = removeRes;
         this.resources = resources;
     }
 
     @Override
     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        return makeMovementFlags(0, LEFT | RIGHT);
+        return makeMovementFlags(0, LEFT);
     }
 
     @Override
@@ -70,7 +69,6 @@ public class SwipeController extends Callback{
                             float dX, float dY, int actionState, boolean isCurrentlyActive) {
         if (actionState == ACTION_STATE_SWIPE) {
             if (buttonShowedState != ButtonsState.GONE) {
-                if (buttonShowedState == ButtonsState.LEFT_VISIBLE) dX = Math.max(dX, buttonWidth);
                 if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) dX = Math.min(dX, -buttonWidth);
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
@@ -95,7 +93,6 @@ public class SwipeController extends Callback{
                 swipeBack = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
                 if (swipeBack) {
                     if (dX < -buttonWidth) buttonShowedState = ButtonsState.RIGHT_VISIBLE;
-                    else if (dX > buttonWidth) buttonShowedState  = ButtonsState.LEFT_VISIBLE;
 
                     if (buttonShowedState != ButtonsState.GONE) {
                         setTouchDownListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
@@ -141,10 +138,7 @@ public class SwipeController extends Callback{
                     swipeBack = false;
 
                     if (buttonsActions != null && buttonInstance != null && buttonInstance.contains(event.getX(), event.getY())) {
-                        if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
-                            buttonsActions.onLeftClicked(viewHolder.getAdapterPosition());
-                        }
-                        else if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
+                        if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
                             buttonsActions.onRightClicked(viewHolder.getAdapterPosition());
                         }
                     }
@@ -171,11 +165,18 @@ public class SwipeController extends Callback{
         // Draw button's background
         RectF rightButton = new RectF(itemView.getRight() - buttonWidth,
                 itemView.getTop(), itemView.getRight(), itemView.getBottom());
-        p.setColor(Color.RED);
-        c.drawRoundRect(rightButton, corners, corners, p);
 
+        p.setColor(Color.RED);
         // Draw delete icon
         Drawable drawable = resources.getDrawable(R.drawable.delete);
+
+        if (!removeRes) {
+            p.setColor(Color.GREEN);
+            // Draw add icon
+            drawable = resources.getDrawable(R.drawable.add);
+        }
+
+        c.drawRoundRect(rightButton, corners, corners, p);
 
         // Calculate position of delete icon
         int itemHeight = itemView.getBottom() - itemView.getTop();

@@ -68,7 +68,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             img = itemView.findViewById(R.id.restaurant_img);
             reviewCount = itemView.findViewById(R.id.review_count);
             call = itemView.findViewById(R.id.call);
-            call.setBackgroundResource(R.drawable.call);
+            call.setImageResource(R.drawable.call);
             favorite = itemView.findViewById(R.id.favorite);
 
             call.setOnClickListener(new View.OnClickListener() {
@@ -87,9 +87,9 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
                 @Override
                 public void onClick(View view) {
                     if (isFavorite) {
-                        favorite.setBackgroundResource(R.drawable.favorite_border);
+                        favorite.setImageResource(R.drawable.favorite_border);
                     } else {
-                        favorite.setBackgroundResource(R.drawable.favorite);
+                        favorite.setImageResource(R.drawable.favorite);
                     }
 
                     if (listener != null) {
@@ -114,7 +114,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item, null, false);
         vh = new ViewHolder(v, mListener);
         return vh;
     }
@@ -124,7 +124,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
         final RestaurantInfo currItem = mRestaurantsList.get(position);
 
         // Sets favorite button
-        if (currItem.getIsFavorite()) {
+        if (currItem.getIsFavorite() == 1) {
             holder.favorite.setImageResource(R.drawable.favorite);
             vh.setIsFavorite(true);
         } else {
@@ -176,4 +176,3 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
         return mRestaurantsList.size();
     }
 }
-

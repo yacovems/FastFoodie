@@ -8,53 +8,50 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.Spinner;
+import android.widget.TextView;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -77,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements
     private ViewPager mViewPager;
     private ArrayList<RestaurantInfo> mRestaurantList;
     private ArrayList<RestaurantInfo> mTempRestaurantList;
+    private ArrayList<RestaurantInfo> mTempForbiddenList;
     private ImageButton[] filterButtons;
     private ImageButton[] popupButtons;
     private FloatingActionButton[] sortButtons;
@@ -84,7 +82,9 @@ public class MainActivity extends AppCompatActivity implements
     private boolean[] cuisineButtonState;
     private int filterBtnID;
     private boolean hasChanged;
+    private boolean sortBtnClicked;
     private GoogleMap mMap = null;
+    private RestaurantListFragment removedRLF = null;
     private RestaurantListFragment RLF = null;
     private MapViewFragment MVF = null;
     private LatLng deviceLocation = null;
@@ -100,6 +100,17 @@ public class MainActivity extends AppCompatActivity implements
     private Toolbar toolbar;
     private boolean onlyFavorites;
     private HashSet<String> cuisines;
+    private int[] tabIcons = {
+            R.drawable.map,
+            R.drawable.restaurants
+    };
+    private String[] tabLabels = {
+            "Map",
+            "Restaurants"
+    };
+
+    private boolean removedList = false;
+    FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,16 +128,89 @@ public class MainActivity extends AppCompatActivity implements
         // Initialize array list of restaurants.
         mRestaurantList = new ArrayList<>();
         mTempRestaurantList = new ArrayList<>();
+        mTempForbiddenList = new ArrayList<>();
+
+        removedRLF = new RestaurantListFragment();
+        fragmentManager = getSupportFragmentManager();
 
         // Initialize cuisine HashSet
         cuisines = new HashSet<>();
 
-        // Set up the ViewPager with the sections adapter.
+        // Setup the ViewPager with the sections adapter
         mViewPager = findViewById(R.id.container);
         setupViewPager(mViewPager);
 
+        // Setup the tab layout
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+        setupTabIcons(tabLayout);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == 1) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                mRestaurantList = data.getParcelableArrayListExtra("restaurants_list");
+                mTempForbiddenList = data.getParcelableArrayListExtra("forbidden_list");
+                favorites = (HashMap) data.getSerializableExtra("favorites");
+                forbidden = (HashMap) data.getSerializableExtra("forbidden");
+                updateMapView();
+            }
+        }
+    }
+
+    private void setupViewPager(ViewPager viewPager) {
+        final SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
+
+        MVF = new MapViewFragment();
+        RLF = new RestaurantListFragment();
+
+        adapter.addFragment(MVF, "Map");
+        adapter.addFragment(RLF, "Restaurants");
+        viewPager.setAdapter(adapter);
+
+        // Instead of recreating the activity, notify the adapter when
+        // a new fragment was picked and update the data set.
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(final int i, final float v, final int i2) {
+            }
+
+            @Override
+            public void onPageScrollStateChanged(final int i) {
+            }
+
+            @Override
+            public void onPageSelected(final int i) {
+                FragmentInterface fragment = (FragmentInterface)
+                        adapter.instantiateItem(mViewPager, i);
+                if (fragment != null) {
+                    fragment.fragmentBecameVisible();
+                }
+            }
+        });
+    }
+
+    private void setupTabIcons(TabLayout tabLayout) {
+
+        for (int i = 0; i < tabLayout.getTabCount(); i++) {
+            // Inflate the Parent LinearLayout Container for the tab
+            LinearLayout tab = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.custom_tab_layout, null);
+
+            TextView tabLabel = (TextView) tab.findViewById(R.id.tab_label);
+            ImageView tabIcon = (ImageView) tab.findViewById(R.id.tab_icon);
+
+            // Set the tab's label and icon
+            tabLabel.setText(tabLabels[i]);
+            tabIcon.setImageResource(tabIcons[i]);
+
+            // Apply custom view
+            tabLayout.getTabAt(i).setCustomView(tab);
+        }
+        // Set the thickness of the active tab indicator
+        tabLayout.setSelectedTabIndicatorHeight((int) (5 * getResources().getDisplayMetrics().density));
     }
 
     // Get user data from Firebase DB
@@ -187,8 +271,6 @@ public class MainActivity extends AppCompatActivity implements
                 getResources()).execute(userImage);
     }
 
-
-
     private void setUpSortButtons() {
         // Initialize sort button
         sortButtons = new FloatingActionButton[4];
@@ -206,9 +288,16 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
 
                 if (buttonNum == 0) {
-                    animateSortButtons(false);
+                    if (!sortBtnClicked) {
+                        animateSortButtons(false);
+                        sortBtnClicked = true;
+                    } else {
+                        animateSortButtons(true);
+                        sortBtnClicked = false;
+                    }
                 } else {
                     animateSortButtons(true);
+                    sortBtnClicked = false;
 
                     switch (buttonNum) {
                         case 1:
@@ -221,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements
                             Collections.sort(mTempRestaurantList, new CustomComparator(buttonNum));
                             break;
                     }
-                    updateRecyclerView();
+                    updateRecyclerView(removedList);
                 }
             }
         });
@@ -277,9 +366,6 @@ public class MainActivity extends AppCompatActivity implements
         }
         makeFilterButton(d, b, 2, 5);
 
-//        b = (ImageButton) findViewById(R.id.cuisine);
-//        d = getResources().getDrawable(R.drawable.cuisine);
-//        makeFilterButton(d, b, 3, 5);
 
         b = (ImageButton) findViewById(R.id.favorite);
         d = getResources().getDrawable(R.drawable.favorite_border);
@@ -325,9 +411,8 @@ public class MainActivity extends AppCompatActivity implements
 
                 filterBtnID = buttonNum;
                 // Draw new circle and find restaurants nearby
-                MVF.drawCircle(deviceLocation);
-                MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
-                updateRecyclerView();
+                updateMapView();
+                updateRecyclerView(removedList);
 
             }
         });
@@ -400,7 +485,7 @@ public class MainActivity extends AppCompatActivity implements
         if (buttonNum == 0) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
-                        .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                        .getColorStateList(getApplicationContext(), R.color.colorAccent));
             }
         }
 
@@ -415,19 +500,18 @@ public class MainActivity extends AppCompatActivity implements
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             if (i == 0) {
                                 cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
-                                        .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                                        .getColorStateList(getApplicationContext(), R.color.colorAccent));
                             } else {
                                 cuisineButtons[i].setBackgroundTintList(ContextCompat
-                                        .getColorStateList(getApplicationContext(), R.color.white));
+                                        .getColorStateList(getApplicationContext(), R.color.lightBlue));
                             }
                         }
                     }
                     cuisines.clear();
 
                     // Update map
-                    MVF.drawCircle(deviceLocation);
-                    MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
-                    updateRecyclerView();
+                    updateMapView();
+                    updateRecyclerView(removedList);
                 }
             });
 
@@ -445,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             // Make the clicked button gray
                             cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
-                                    .getColorStateList(getApplicationContext(), R.color.white));
+                                    .getColorStateList(getApplicationContext(), R.color.lightBlue));
                         }
 
                         // Remove the cuisine from the cuisines set
@@ -455,20 +539,19 @@ public class MainActivity extends AppCompatActivity implements
                             // If no cuisine filters are in use, highlight "All"
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 cuisineButtons[0].setBackgroundTintList(ContextCompat
-                                        .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                                        .getColorStateList(getApplicationContext(), R.color.colorAccent));
                             }
                         }
-
 
                     } else {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             // Make "All" button gray
                             cuisineButtons[0].setBackgroundTintList(ContextCompat
-                                    .getColorStateList(getApplicationContext(), R.color.white));
+                                    .getColorStateList(getApplicationContext(), R.color.lightBlue));
 
                             // Make the clicked button colored
                             cuisineButtons[buttonNum].setBackgroundTintList(ContextCompat
-                                    .getColorStateList(getApplicationContext(), R.color.colorPrimary));
+                                    .getColorStateList(getApplicationContext(), R.color.colorAccent));
                         }
 
                         cuisineButtonState[buttonNum] = true;
@@ -477,9 +560,8 @@ public class MainActivity extends AppCompatActivity implements
 
 
                     // Update map
-                    MVF.drawCircle(deviceLocation);
-                    MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
-                    updateRecyclerView();
+                    updateMapView();
+                    updateRecyclerView(removedList);
                 }
             });
         }
@@ -510,10 +592,9 @@ public class MainActivity extends AppCompatActivity implements
                 updateDB(user);
 
                 // Draw new circle and find restaurants nearby
-                MVF.drawCircle(deviceLocation);
-                MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
+                updateMapView();
                 filterButtons[filterBtnID].setImageDrawable(drawable);
-                updateRecyclerView();
+                updateRecyclerView(false);
             }
         });
     }
@@ -595,17 +676,6 @@ public class MainActivity extends AppCompatActivity implements
             b = (ImageButton) layout.findViewById(R.id.star);
             d = getResources().getDrawable(R.drawable.ic_1_star);
             makePopupButton(0, 0, 1, 10, b, d);
-
-        } else if (filterBtnID == 3) {
-            viewGroup = (LinearLayout) context.findViewById(R.id.popup3);
-
-            layoutInflater = (LayoutInflater) context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            layout = layoutInflater.inflate(R.layout.cuisine_popup_layout, viewGroup);
-
-            // adjust popup width and position on the screen
-            popupWidth *= 2;
-            x -= popupWidth / 4;
         }
 
         // Creating the PopupWindow
@@ -623,44 +693,6 @@ public class MainActivity extends AppCompatActivity implements
         popup.showAtLocation(layout, Gravity.NO_GRAVITY, x, y - popupHeight + 10);
     }
 
-    private void setupViewPager(ViewPager viewPager) {
-        final SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
-
-        // Send parcel with restaurants list to
-        // the restaurant list fragments
-
-        MVF = new MapViewFragment();
-        Bundle b = new Bundle();
-        MVF.setArguments(b);
-
-        RLF = new RestaurantListFragment();
-        Bundle b2 = new Bundle();
-        RLF.setArguments(b2);
-
-        adapter.addFragment(MVF, "Map");
-        adapter.addFragment(RLF, "Venues");
-        viewPager.setAdapter(adapter);
-
-        // Instead of recreating the activity, notify the adapter when
-        // a new fragment was picked and update the data set.
-        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(final int i, final float v, final int i2) {
-            }
-            @Override
-            public void onPageSelected(final int i) {
-                FragmentInterface fragment = (FragmentInterface)
-                        adapter.instantiateItem(mViewPager, i);
-                if (fragment != null) {
-                    fragment.fragmentBecameVisible();
-                }
-            }
-            @Override
-            public void onPageScrollStateChanged(final int i) {
-            }
-        });
-    }
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -672,18 +704,22 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_profile) {
             
-        } else if (id == R.id.nav_review) {
+        } else if (id == R.id.nav_removed_restaurants) {
 
-        } else if (id == R.id.nav_share) {
+            Intent removedRestaurants = new Intent(MainActivity.this, RemovedRestaurantsActivity.class);
+            removedRestaurants.putParcelableArrayListExtra("restaurants_list", mRestaurantList);
+            removedRestaurants.putParcelableArrayListExtra("forbidden_list", mTempForbiddenList);
+            removedRestaurants.putExtra("favorites", favorites);
+            removedRestaurants.putExtra("forbidden", forbidden);
+            removedRestaurants.putExtra("user_id", userId);
+            startActivityForResult(removedRestaurants, 1);
 
-        } else if (id == R.id.nav_settings) {
-            Intent i = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(i);
         } else if (id == R.id.nav_share) {
 
         }
@@ -713,13 +749,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void setCuisines(HashSet<String> cuisines) {
-        this.cuisines = cuisines;
-    }
-
-    @Override
-    public HashSet<String> getCuisines() {
-        return cuisines;
+    public void setTempForbiddenList(ArrayList<RestaurantInfo> list) {
+        mTempForbiddenList = list;
     }
 
     @Override
@@ -730,6 +761,21 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public ArrayList<RestaurantInfo> getTempRestaurantList() {
         return mTempRestaurantList;
+    }
+
+    @Override
+    public ArrayList<RestaurantInfo> getTempForbiddenList() {
+        return mTempForbiddenList;
+    }
+
+    @Override
+    public void setCuisines(HashSet<String> cuisines) {
+        this.cuisines = cuisines;
+    }
+
+    @Override
+    public HashSet<String> getCuisines() {
+        return cuisines;
     }
 
     @Override
@@ -814,18 +860,14 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void updateRecyclerView() {
-        RLF.updateRecyclerView();
+    public void updateRecyclerView(boolean isRemoved) {
+        RLF.updateRecyclerView(isRemoved);
     }
 
     @Override
     public void updateMapView() {
         MVF.drawCircle(deviceLocation);
-        try {
-            MVF.findNearByRestaurants(deviceLocation, onlyFavorites);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        MVF.showNearbyPlaces(getRestaurantList(), onlyFavorites);
     }
 
     @Override
@@ -840,5 +882,15 @@ public class MainActivity extends AppCompatActivity implements
         for (int i = 0; i < sortButtons.length; i++) {
             sortButtons[i].setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public boolean getIsRemovedList() {
+        return removedList;
+    }
+
+    @Override
+    public void setIsRemovedList(boolean removedList) {
+        this.removedList = removedList;
     }
 }

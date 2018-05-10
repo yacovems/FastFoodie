@@ -18,10 +18,12 @@ public interface FragmentCommunication {
     int getRadius();
     void setRestaurantList(ArrayList<RestaurantInfo> list);
     void setTempRestaurantList(ArrayList<RestaurantInfo> list);
+    void setTempForbiddenList(ArrayList<RestaurantInfo> list);
     void setCuisines(HashSet<String> cuisines);
     HashSet<String> getCuisines();
     ArrayList<RestaurantInfo> getRestaurantList();
     ArrayList<RestaurantInfo> getTempRestaurantList();
+    ArrayList<RestaurantInfo> getTempForbiddenList();
     void setIsInitialized(boolean changed);
     boolean getIsInitialized();
     GoogleMap getMap();
@@ -38,8 +40,10 @@ public interface FragmentCommunication {
     void setForbidden(HashMap<String, String> forbidden);
     String getUserId();
     void updateDB(HashMap<String, Object> user);
-    void updateRecyclerView();
+    void updateRecyclerView(boolean isrRemoved);
     void updateMapView();
     void showSortButton();
     void hideSortButton();
+    boolean getIsRemovedList();
+    void setIsRemovedList(boolean removedList);
 }

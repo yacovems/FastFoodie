@@ -9,6 +9,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -18,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -25,7 +28,8 @@ import com.google.android.gms.tasks.Task;
  * Created by Yacov on 3/16/2018.
  */
 
-public class GoogleMapsAPI extends FragmentActivity {
+public class GoogleMapsAPI extends FragmentActivity
+        implements GoogleMap.OnMyLocationButtonClickListener {
 
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -167,6 +171,7 @@ public class GoogleMapsAPI extends FragmentActivity {
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mMap.setOnMyLocationButtonClickListener(this);
                 getDeviceLocation(activity);
             } else {
                 mMap.setMyLocationEnabled(false);
@@ -177,6 +182,27 @@ public class GoogleMapsAPI extends FragmentActivity {
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    @Override
+    public boolean onMyLocationButtonClick() {
+        // Once the "my location" button on the map was clicked,
+        // the camera will move and zoom on the current device location
+        setCamera();
+        return true;
+    }
+
+    private void setCamera() {
+        LatLngBounds.Builder locationBounds = new LatLngBounds.Builder();
+        Location loc = getLocation();
+        double lat = loc.getLatitude();
+        double lon = loc.getLongitude();
+        double scale = 600 * 0.00001;
+        locationBounds.include(new LatLng(lat + scale, lon + scale));
+        locationBounds.include(new LatLng(lat - scale, lon + scale));
+        locationBounds.include(new LatLng(lat + scale, lon - scale));
+        locationBounds.include(new LatLng(lat - scale, lon - scale));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(locationBounds.build(), 10));
     }
 
     public Location getLocation() {

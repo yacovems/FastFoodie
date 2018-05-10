@@ -137,14 +137,14 @@ public class DataParser {
             e.printStackTrace();
         }
 
-        boolean isFavorite = false;
-        if (favorites.containsKey(id)) {isFavorite = true;}
+        int isFavorite = 0;
+        if (favorites.containsKey(id)) {isFavorite = 1;}
 
-        boolean isForbidden = false;
-        if (forbidden.containsKey(id)) {isForbidden = true;}
+        int isForbidden = 0;
+        if (forbidden.containsKey(id)) {isForbidden = 1;}
 
         // Create a restaurant object
         return new RestaurantInfo(name, address, phoneNum, cuisine,
-                rating, cost, distance, imgURL, reviewCount, isFavorite, isForbidden, id, latLng, website);
+                rating, cost, imgURL, distance, reviewCount, isFavorite, isForbidden, id, latLng, website);
     }
 }

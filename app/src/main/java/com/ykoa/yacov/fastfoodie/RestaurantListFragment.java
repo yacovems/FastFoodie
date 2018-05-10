@@ -8,6 +8,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.net.Uri;
         import android.os.Bundle;
         import android.support.annotation.Nullable;
+        import android.support.v4.app.DialogFragment;
         import android.support.v4.app.Fragment;
         import android.support.v7.widget.LinearLayoutManager;
         import android.support.v7.widget.RecyclerView;
@@ -37,18 +38,7 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
     private RecyclerView mRecyclerView;
     private RestaurantListAdapter mAdapter;
     private FragmentCommunication mCallback;
-    private SwipeController swipeController = null;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater,
-                             @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.restaurant_list_fragment,
-                container, false);
-
-        mCallback.setIsInitialized(false);
-        return view;
-    }
+    private View view;
 
     @Override
     public void onAttach(Context context) {
@@ -64,26 +54,41 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         }
     }
 
-    public void buildRecyclerView(View view) {
-        mRecyclerView = view.findViewById(R.id.recyclerView);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+
+        view = inflater.inflate(R.layout.restaurant_list_fragment,
+                container, false);
+
+        mCallback.setIsInitialized(false);
+
+        if (getActivity() instanceof RemovedRestaurantsActivity) {
+            updateRecyclerView(true);
+        }
+        return view;
+    }
+
+    public void buildRecyclerView(final ArrayList<RestaurantInfo> list) {
+        mRecyclerView = view.findViewById(R.id.restaurants_recyclerView);
         mRecyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager =
                 new LinearLayoutManager(getActivity());
-        mAdapter = new RestaurantListAdapter(
-                mCallback.getTempRestaurantList(), getContext());
+        mAdapter = new RestaurantListAdapter(list, getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(
                 new RestaurantListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-
+                // Send user to the Yelp's restaurant page
             }
 
             @Override
             public void onCallClick(int position) {
-                RestaurantInfo restaurant = mCallback.getTempRestaurantList()
-                        .get(position);
+                ArrayList<RestaurantInfo> restaurantList = mCallback.getTempRestaurantList();
+                RestaurantInfo restaurant = restaurantList.get(position);
 
                 // If phone number not available, don't do anything.
                 if (restaurant.getPhoneNumber().equals("phone not available")) {return;}
@@ -101,26 +106,29 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             public void onFavoriteClick(int position) {
 
                 HashMap<String, Object> user = new HashMap<>();
-                RestaurantInfo restaurant = mCallback.getTempRestaurantList()
-                        .get(position);
+                ArrayList<RestaurantInfo> restaurantList = mCallback.getTempRestaurantList();
+                RestaurantInfo restaurant = restaurantList.get(position);
+
                 HashMap<String, String> favorites = mCallback.getFavorites();
 
-                if (restaurant.getIsFavorite()) {
+                if (restaurant.getIsFavorite() == 1) {
                     // Remove restaurant from favorites
                     // and update Firebase
-                    restaurant.setIsFavorite(false);
+                    restaurant.setIsFavorite(0);
                     favorites.remove(restaurant.getId());
-                    user.put("favorites", favorites);
-                    mCallback.updateDB(user);
-
                 } else {
                     // Add restaurant to favorites
                     // and update Firebase
-                    restaurant.setIsFavorite(true);
+                    restaurant.setIsFavorite(1);
                     favorites.put(restaurant.getId(), restaurant.getName());
-                    user.put("favorites", favorites);
-                    mCallback.updateDB(user);
                 }
+
+                // Update DB
+                user.put("favorites", favorites);
+                mCallback.updateDB(user);
+
+                // Update card
+                mAdapter.notifyItemChanged(position);
 
                 // Update map fragment
                 mCallback.updateMapView();
@@ -128,25 +136,23 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         });
     }
 
-    public void swipeRecyclerView() {
+    public void swipeRecyclerView(final boolean remove) {
 
-        swipeController = new SwipeController(new SwipeControllerActions() {
-
-            @Override
-            public void onLeftClicked(final int position) {
-            }
+        final SwipeController swipeController = new SwipeController(new SwipeControllerActions() {
 
             @Override
             public void onRightClicked(int position) {
                 // Task start immediately.
                 Toast.makeText(getContext(),
                         "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
-                removeItem(position);
 
-                // Update map fragment
+                // Remove restaurant from list
+                removeItem(position, remove);
+
+                // Update map
                 mCallback.updateMapView();
             }
-        }, false, getResources());
+        }, remove, getResources());
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
         itemTouchhelper.attachToRecyclerView(mRecyclerView);
 
@@ -158,32 +164,62 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         });
     }
 
-    public void updateRecyclerView() {
-        buildRecyclerView(getView());
+    public void updateRecyclerView(boolean removedRes) {
+        if (removedRes) {
+            buildRecyclerView(mCallback.getTempForbiddenList());
+        } else {
+            buildRecyclerView(mCallback.getTempRestaurantList());
+        }
+
         if (!mCallback.getIsInitialized()) {
             // Swipe recyclerView items
-            swipeRecyclerView();
+            swipeRecyclerView(!removedRes);
             mCallback.setIsInitialized(true);
         }
     }
 
-    public void removeItem(int position) {
-        ArrayList<RestaurantInfo> mRestaurantsList = mCallback.getTempRestaurantList();
+    public void removeItem(int position, boolean remove) {
+        ArrayList<RestaurantInfo> allRestaurants = mCallback.getRestaurantList();
+        ArrayList<RestaurantInfo> mRestaurantsList = null;
+        if (remove) {
+            mRestaurantsList = mCallback.getTempRestaurantList();
+        } else {
+            mRestaurantsList = mCallback.getTempForbiddenList();
+        }
+
         RestaurantInfo restaurant = mRestaurantsList.get(position);
         HashMap<String, String> forbidden = mCallback.getForbidden();
-
-        // Add restaurant to forbidden
-        // and update Firebase\
         HashMap<String, Object> user = new HashMap<>();
-        forbidden.put(restaurant.getId(), restaurant.getName());
+
+        if (remove) {
+            // Add restaurant to forbidden
+            forbidden.put(restaurant.getId(), restaurant.getName());
+            restaurant.setIsForbidden(1);
+        } else {
+            // Remove restaurant from forbidden
+            // and add to restaurants list
+            forbidden.remove(restaurant.getId());
+            restaurant.setIsForbidden(0);
+        }
+
+        // VERY BAD FOR UI THREAD!!
+        for (RestaurantInfo res : allRestaurants) {
+            if (res.getId().equals(restaurant.getId())) {
+                res.setIsForbidden(restaurant.getIsForbidden());
+            }
+        }
+
+        // update Firebase
         user.put("forbidden", forbidden);
         mCallback.updateDB(user);
 
         //Remove item from recycler view.
         mRestaurantsList.remove(position);
 
-        // Update recycler view.
+        // Update recycler view
         mAdapter.notifyItemRemoved(position);
+
+
     }
 
     @Override

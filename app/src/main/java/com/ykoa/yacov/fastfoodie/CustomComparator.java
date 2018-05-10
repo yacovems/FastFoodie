@@ -18,7 +18,7 @@ public class CustomComparator implements Comparator<RestaurantInfo>{
             case 2:
                 return res1.getCost().compareTo(res2.getCost());
             case 3:
-                return res1.getRating().compareTo(res2.getRating());
+                return res2.getRating().compareTo(res1.getRating());
             default:
                 return 0;
         }

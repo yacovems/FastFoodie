@@ -69,12 +69,9 @@ public class LoginActivity extends AppCompatActivity{
         storage = new InternalStorageOps();
 
         // If user is already signed in, go to main activity
-        String status = readFile();
-        System.out.println("-----------------------------> status is: " + status);
         if (!readFile().equals("")) {
-            System.out.println("-----------------------------> for some reason I end up in here!!");
-            Intent main = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(main);
+//            Intent main = new Intent(LoginActivity.this, MainActivity.class);
+//            startActivity(main);
         }
 
         // Set logo animation
@@ -216,8 +213,9 @@ public class LoginActivity extends AppCompatActivity{
         // Get width and height of the device's screen
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-        int width = displayMetrics.widthPixels;
+        int deviceHeight = displayMetrics.heightPixels;
+        int deviceWidth = displayMetrics.widthPixels;
+        final int POPUP_MARGIN = 100;
 
         // Create a layout for the popup window
         LinearLayout viewGroup = null;
@@ -230,18 +228,24 @@ public class LoginActivity extends AppCompatActivity{
 
         // Create the popup
         CustomPopupWindow popupTutorial =
-                new CustomPopupWindow(width, height, this, layout);
+                new CustomPopupWindow(deviceWidth - POPUP_MARGIN,
+                        deviceHeight - POPUP_MARGIN, deviceWidth,
+                        deviceHeight, this, layout);
 
-
-        popupTutorial.addButton((ImageButton) findViewById(R.id.left_arrow_btn));
-//        ImageButton leftArrow = popupTutorial.getButton(0);
-//        leftArrow.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                System.out.println("-888888888888888888888888899999999999999999");
-//            }
-//        });
-
+        popupTutorial.showName("Hello " + userName.split(" ")[0]);
+        popupTutorial.showButtons();
+        popupTutorial.addImages(R.drawable.my_location);
+        popupTutorial.addImages(R.drawable.change_distance);
+        popupTutorial.addImages(R.drawable.stack_cuisine);
+        popupTutorial.addImages(R.drawable.change_cost);
+        popupTutorial.addImages(R.drawable.change_rating);
+        popupTutorial.addImages(R.drawable.stack_cuisine_list);
+        popupTutorial.addImages(R.drawable.sort_tutorial);
+        popupTutorial.addImages(R.drawable.remove_from_search);
+        popupTutorial.addImages(R.drawable.show_only_favorites);
+        popupTutorial.addImages(R.drawable.removed_res);
+        popupTutorial.addImages(R.drawable.nav_drawer);
+        popupTutorial.showImg();
 
     }
 

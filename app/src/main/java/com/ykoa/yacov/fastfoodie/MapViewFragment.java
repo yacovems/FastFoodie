@@ -3,6 +3,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.content.Context;
         import android.content.res.Resources;
         import android.graphics.Bitmap;
+        import android.graphics.BitmapFactory;
         import android.graphics.Color;
         import android.location.Location;
         import android.os.AsyncTask;
@@ -16,6 +17,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.widget.FrameLayout;
         import android.widget.ImageView;
         import android.widget.TextView;
+        import android.widget.Toast;
 
         import com.google.android.gms.maps.CameraUpdate;
         import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,6 +37,7 @@ package com.ykoa.yacov.fastfoodie;
         import org.json.JSONObject;
 
         import java.io.IOException;
+        import java.io.Serializable;
         import java.text.DecimalFormat;
         import java.util.ArrayList;
         import java.util.HashMap;
@@ -46,7 +49,7 @@ package com.ykoa.yacov.fastfoodie;
  */
 
 public class MapViewFragment extends Fragment implements FragmentInterface,
-        GoogleMap.OnMapLoadedCallback, OnMapReadyCallback {
+        GoogleMap.OnMapLoadedCallback, OnMapReadyCallback, Serializable {
 
     private static final String TAG = "MapViewFragment";
     private boolean onlyFavorites;
@@ -222,7 +225,12 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         @Override
         protected void onPostExecute(ArrayList<RestaurantInfo> placesList) {
             Log.d("onPostExecute", "parse jsonObject");
+
+            // Show restaurants on the map
             showNearbyPlaces(placesList, onlyFavorites);
+
+            // Update/initialize recyclerView
+            mCallback.updateRecyclerView(mCallback.getIsRemovedList());
         }
     }
 
@@ -236,6 +244,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
         // Create arrayList of restaurants
         ArrayList<RestaurantInfo> tempList =  new ArrayList<>();
+        ArrayList<RestaurantInfo> tempForbiddenList =  new ArrayList<>();
 
         for (int i = 0; i < placesList.size(); i++) {
 
@@ -243,6 +252,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
             MarkerOptions markerOptions = new MarkerOptions();
             RestaurantInfo restaurant = placesList.get(i);
+            System.out.println("------------------>  Res name: " + restaurant.getName() + ", is forbidden: " + restaurant.getIsForbidden());
 
             // If outside the search radius
             String distance = restaurant.getDistance();
@@ -263,8 +273,11 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
 
             // Check if current restaurant is in
             // the user's favorites or forbidden
-            if (restaurant.getIsForbidden()) {continue;}
-            if (!restaurant.getIsFavorite() && onlyFavorites) {continue;}
+            if (restaurant.getIsForbidden() == 1) {
+                tempForbiddenList.add(restaurant);
+                continue;
+            }
+            if (restaurant.getIsFavorite() == 0 && onlyFavorites) {continue;}
 
             // Check if the restaurant's cuisine is in the cuisines set.
             // If it is not, don't show it on the map.
@@ -283,7 +296,7 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             markerOptions.snippet(restaurant.getCuisine() + " - " + restaurant.getRating());
 
             // Check which pin color should be displayed on the map
-            if (restaurant.getIsFavorite()) {
+            if (restaurant.getIsFavorite() == 1) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
             } else if (rating >= 4) {
                 markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
@@ -306,8 +319,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         // Set restaurant list
         mCallback.setTempRestaurantList(tempList);
 
-        // Update/initialize recyclerView
-        mCallback.updateRecyclerView();
+        // Set temporary forbidden list
+        mCallback.setTempForbiddenList(tempForbiddenList);
     }
 
     private void setCamera() {
