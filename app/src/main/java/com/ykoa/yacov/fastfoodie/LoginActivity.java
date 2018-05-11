@@ -70,8 +70,8 @@ public class LoginActivity extends AppCompatActivity{
 
         // If user is already signed in, go to main activity
         if (!readFile().equals("")) {
-//            Intent main = new Intent(LoginActivity.this, MainActivity.class);
-//            startActivity(main);
+            Intent main = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(main);
         }
 
         // Set logo animation
@@ -205,7 +205,6 @@ public class LoginActivity extends AppCompatActivity{
 
                     }
                 });
-
     }
 
     private void showTutorial() {
@@ -246,7 +245,6 @@ public class LoginActivity extends AppCompatActivity{
         popupTutorial.addImages(R.drawable.removed_res);
         popupTutorial.addImages(R.drawable.nav_drawer);
         popupTutorial.showImg();
-
     }
 
     @Override

@@ -156,7 +156,11 @@ public class MainActivity extends AppCompatActivity implements
                 mTempForbiddenList = data.getParcelableArrayListExtra("forbidden_list");
                 favorites = (HashMap) data.getSerializableExtra("favorites");
                 forbidden = (HashMap) data.getSerializableExtra("forbidden");
+
+                // After adding back restaurants to future searches,
+                // update the map and restaurants list
                 updateMapView();
+                updateRecyclerView(removedList);
             }
         }
     }
@@ -718,6 +722,8 @@ public class MainActivity extends AppCompatActivity implements
             removedRestaurants.putExtra("favorites", favorites);
             removedRestaurants.putExtra("forbidden", forbidden);
             removedRestaurants.putExtra("user_id", userId);
+            removedRestaurants.putExtra("user_name", userName);
+            removedRestaurants.putExtra("user_image", userImage);
             startActivityForResult(removedRestaurants, 1);
 
         } else if (id == R.id.nav_share) {
@@ -867,7 +873,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void updateMapView() {
         MVF.drawCircle(deviceLocation);
-        MVF.showNearbyPlaces(getRestaurantList(), onlyFavorites);
+        MVF.showNearbyPlaces(mRestaurantList, onlyFavorites);
     }
 
     @Override

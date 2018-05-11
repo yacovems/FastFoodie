@@ -37,7 +37,7 @@
                     android:layout_width="150dp"
                     android:layout_height="50dp"
                     android:layout_gravity="center_vertical"
-                    android:src="@drawable/fast_foodie_logo"/>
+                    android:src="@drawable/foodie_logo"/>
 
                 <ImageView
                     android:layout_width="150dp"

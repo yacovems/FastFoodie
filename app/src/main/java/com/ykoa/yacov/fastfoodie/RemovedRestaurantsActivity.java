@@ -39,6 +39,8 @@ public class RemovedRestaurantsActivity
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     String userId = "";
+    String userName = "";
+    String userImage = "";
     private Toolbar toolbar;
 
     @Override
@@ -51,6 +53,8 @@ public class RemovedRestaurantsActivity
         favorites = (HashMap) intent.getSerializableExtra("favorites");
         forbidden = (HashMap) intent.getSerializableExtra("forbidden");
         userId = intent.getStringExtra("user_id");
+        userName = intent.getStringExtra("user_name");
+        userImage = intent.getStringExtra("user_image");
         setContentView(R.layout.activity_removed_restaurants);
 
         // Set toolbar
@@ -76,20 +80,14 @@ public class RemovedRestaurantsActivity
 
         // Set nav drawer user info
         Menu navMenu = navigationView.getMenu();
-//        navMenu.getItem(0).setTitle(userName);
-//        new DownloadImageTask(navigationView.getMenu(),
-//                getResources()).execute(userImage);
+        navMenu.getItem(0).setTitle(userName);
+        new DownloadImageTask(navigationView.getMenu(),
+                getResources()).execute(userImage);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-
-        // Get width and height of the device's screen
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int width = displayMetrics.widthPixels;
-        int height = displayMetrics.heightPixels;
 
         // Handle navigation view item clicks here.
         int id = item.getItemId();
@@ -105,14 +103,6 @@ public class RemovedRestaurantsActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-
-
-//        finish();
     }
 
     @Override

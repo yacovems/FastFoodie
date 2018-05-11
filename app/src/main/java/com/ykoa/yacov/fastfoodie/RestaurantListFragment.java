@@ -83,6 +83,12 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             @Override
             public void onItemClick(int position) {
                 // Send user to the Yelp's restaurant page
+                ArrayList<RestaurantInfo> restaurantList = mCallback.getTempRestaurantList();
+                RestaurantInfo restaurant = restaurantList.get(position);
+
+                Uri uri = Uri.parse(restaurant.getWebsite());
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
             }
 
             @Override
@@ -133,6 +139,11 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
                 // Update map fragment
                 mCallback.updateMapView();
             }
+
+            @Override
+            public void onDirectionsClick(int position) {
+
+            }
         });
     }
 
@@ -143,8 +154,13 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             @Override
             public void onRightClicked(int position) {
                 // Task start immediately.
-                Toast.makeText(getContext(),
-                        "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
+                if (remove) {
+                    Toast.makeText(getContext(),
+                            "Restaurant removed from future searches", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getContext(),
+                            "Restaurant added to future searches", Toast.LENGTH_LONG).show();
+                }
 
                 // Remove restaurant from list
                 removeItem(position, remove);
