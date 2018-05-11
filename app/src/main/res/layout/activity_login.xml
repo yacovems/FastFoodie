@@ -14,7 +14,7 @@
         android:layout_width="300dp"
         android:layout_height="300dp"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/fast_foodie_logo"/>
+        android:src="@drawable/foodie_logo"/>
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/login_button"

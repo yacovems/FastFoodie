@@ -3,7 +3,10 @@ package com.ykoa.yacov.fastfoodie;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -45,6 +48,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -270,9 +275,29 @@ public class MainActivity extends AppCompatActivity implements
 
         // Set nav drawer user info
         Menu navMenu = navigationView.getMenu();
-        navMenu.getItem(0).setTitle(userName);
-        new DownloadImageTask(navigationView.getMenu(),
-                getResources()).execute(userImage);
+        final MenuItem profile = navMenu.getItem(0);
+        profile.setTitle(userName);
+
+        Target target = new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                Bitmap b = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
+                BitmapDrawable icon = new BitmapDrawable(b);
+                profile.setIcon(icon);
+            }
+
+            @Override
+            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+            }
+        };
+
+        Picasso.get().load(userImage).into(target);
     }
 
     private void setUpSortButtons() {

@@ -16,6 +16,8 @@ package com.ykoa.yacov.fastfoodie;
         import android.widget.ImageView;
         import android.widget.TextView;
 
+        import com.squareup.picasso.Picasso;
+
         import java.io.IOException;
         import java.io.InputStream;
         import java.net.MalformedURLException;
@@ -151,6 +153,8 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
     public void onBindViewHolder(final ViewHolder holder, int position) {
         final RestaurantInfo currItem = mRestaurantsList.get(position);
 
+
+
         // Sets favorite button
         if (currItem.getIsFavorite() == 1) {
             holder.favorite.setImageResource(R.drawable.favorite);
@@ -160,9 +164,9 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             vh.setIsFavorite(false);
         }
 
-        // Download image from url
-        DownloadImageTask downloadImg = new DownloadImageTask(holder, position);
-        downloadImg.execute(currItem.getImg());
+        // Download image from url using Picasso
+        // and load it into the ImageView
+        Picasso.get().load(currItem.getImg()).into(holder.img);
 
         // Get the correct rating image
         Bitmap image = null;

@@ -20,7 +20,9 @@
             android:id="@+id/restaurant_img"
             android:layout_width="@dimen/restaurant_img"
             android:layout_height="@dimen/restaurant_img"
-            android:layout_marginRight="2dp" />
+            android:scaleType="centerCrop"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/rectangle_frame"/>
 
         <LinearLayout
             android:layout_width="wrap_content"

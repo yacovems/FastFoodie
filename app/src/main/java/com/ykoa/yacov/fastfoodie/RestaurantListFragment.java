@@ -143,6 +143,23 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             @Override
             public void onDirectionsClick(int position) {
 
+                ArrayList<RestaurantInfo> restaurantList = mCallback.getTempRestaurantList();
+                RestaurantInfo restaurant = restaurantList.get(position);
+                LatLng location = restaurant.getLocation();
+                String baseURL = "google.navigation:q=" +
+                        location.latitude + "," + location.longitude;
+
+                // Create a Uri from an intent string. Use the result to create an Intent.
+                Uri gmmIntentUri = Uri.parse(baseURL);
+
+                // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+
+                // Make the Intent explicit by setting the Google Maps package
+                mapIntent.setPackage("com.google.android.apps.maps");
+
+                // Attempt to start an activity that can handle the Intent
+                startActivity(mapIntent);
             }
         });
     }
