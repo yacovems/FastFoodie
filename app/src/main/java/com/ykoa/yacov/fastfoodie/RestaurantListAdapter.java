@@ -32,6 +32,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
 
     private Context context;
     private ArrayList<RestaurantInfo> mRestaurantsList;
+    private boolean showFavoriteBtn;
     private OnItemClickListener mListener;
     private ViewHolder vh;
 
@@ -61,7 +62,7 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
         public TextView reviewCount;
         public boolean isFavorite;
 
-        public ViewHolder(View itemView, final OnItemClickListener listener) {
+        public ViewHolder(View itemView, final OnItemClickListener listener, boolean showBtn) {
             super(itemView);
             name = itemView.findViewById(R.id.restaurant_name);
             cuisine = itemView.findViewById(R.id.cuisine);
@@ -77,6 +78,55 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
             directions = itemView.findViewById(R.id.directions);
             directions.setImageResource(R.drawable.directions);
 
+            // If in the restaurant list, show buttons
+            if (showBtn) {
+                favorite.setVisibility(View.VISIBLE);
+                call.setVisibility(View.VISIBLE);
+                directions.setVisibility(View.VISIBLE);
+
+                call.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (listener != null) {
+                            int position = getAdapterPosition();
+                            if (position != RecyclerView.NO_POSITION) {
+                                listener.onCallClick(position);
+                            }
+                        }
+                    }
+                });
+
+                favorite.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (isFavorite) {
+                            favorite.setImageResource(R.drawable.favorite_border);
+                        } else {
+                            favorite.setImageResource(R.drawable.favorite);
+                        }
+
+                        if (listener != null) {
+                            int position = getAdapterPosition();
+                            if (position != RecyclerView.NO_POSITION) {
+                                listener.onFavoriteClick(position);
+                            }
+                        }
+                    }
+                });
+
+                directions.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (listener != null) {
+                            int position = getAdapterPosition();
+                            if (position != RecyclerView.NO_POSITION) {
+                                listener.onDirectionsClick(position);
+                            }
+                        }
+                    }
+                });
+            }
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -88,48 +138,6 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
                     }
                 }
             });
-
-            call.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            listener.onCallClick(position);
-                        }
-                    }
-                }
-            });
-
-            favorite.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (isFavorite) {
-                        favorite.setImageResource(R.drawable.favorite_border);
-                    } else {
-                        favorite.setImageResource(R.drawable.favorite);
-                    }
-
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            listener.onFavoriteClick(position);
-                        }
-                    }
-                }
-            });
-
-            directions.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            listener.onDirectionsClick(position);
-                        }
-                    }
-                }
-            });
         }
 
         public void setIsFavorite(boolean isFavorite) {
@@ -137,15 +145,16 @@ public class RestaurantListAdapter extends RecyclerView.Adapter<RestaurantListAd
         }
     }
 
-    public RestaurantListAdapter(ArrayList<RestaurantInfo> list, Context context) {
+    public RestaurantListAdapter(ArrayList<RestaurantInfo> list, Context context, boolean showFavoriteBtn) {
         this.mRestaurantsList = list;
         this.context = context;
+        this.showFavoriteBtn = showFavoriteBtn;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_list_item, parent, false);
-        vh = new ViewHolder(v, mListener);
+        vh = new ViewHolder(v, mListener, showFavoriteBtn);
         return vh;
     }
 

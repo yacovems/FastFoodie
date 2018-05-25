@@ -16,7 +16,7 @@
         android:layout_marginTop="10dp"
         android:visibility="gone"
         android:textStyle="bold"
-        android:textSize="40sp"
+        android:textSize="40dp"
         android:textColor="@color/colorPrimary"
         android:gravity="center_horizontal"/>
 
@@ -55,7 +55,5 @@
             android:visibility="gone"/>
 
     </LinearLayout>
-
-
 
 </LinearLayout>

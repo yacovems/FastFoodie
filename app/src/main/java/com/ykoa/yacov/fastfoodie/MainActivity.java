@@ -743,6 +743,7 @@ public class MainActivity extends AppCompatActivity implements
 
             Intent removedRestaurants = new Intent(MainActivity.this, RemovedRestaurantsActivity.class);
             removedRestaurants.putParcelableArrayListExtra("restaurants_list", mRestaurantList);
+            removedRestaurants.putParcelableArrayListExtra("temp_restaurant_list", mTempRestaurantList);
             removedRestaurants.putParcelableArrayListExtra("forbidden_list", mTempForbiddenList);
             removedRestaurants.putExtra("favorites", favorites);
             removedRestaurants.putExtra("forbidden", forbidden);

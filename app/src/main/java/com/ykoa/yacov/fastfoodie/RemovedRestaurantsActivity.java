@@ -37,6 +37,7 @@ public class RemovedRestaurantsActivity
 
     private static final String TAG = "RemovedResListFragment";
     ArrayList<RestaurantInfo> restaurantsList = new ArrayList<>();
+    ArrayList<RestaurantInfo> tempRestaurantsList = new ArrayList<>();
     ArrayList<RestaurantInfo> tempForbiddenList = new ArrayList<>();
 
     HashMap<String, String> favorites = new HashMap<>();
@@ -54,6 +55,7 @@ public class RemovedRestaurantsActivity
 
         Intent intent = getIntent();
         restaurantsList = intent.getParcelableArrayListExtra("restaurants_list");
+        tempRestaurantsList = intent.getParcelableArrayListExtra("temp_restaurants_list");
         tempForbiddenList = intent.getParcelableArrayListExtra("forbidden_list");
         favorites = (HashMap) intent.getSerializableExtra("favorites");
         forbidden = (HashMap) intent.getSerializableExtra("forbidden");
@@ -172,7 +174,7 @@ public class RemovedRestaurantsActivity
 
     @Override
     public ArrayList<RestaurantInfo> getTempRestaurantList() {
-        return null;
+        return tempRestaurantsList;
     }
 
     @Override

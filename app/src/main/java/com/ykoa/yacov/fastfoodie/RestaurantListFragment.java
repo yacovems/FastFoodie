@@ -12,6 +12,7 @@ package com.ykoa.yacov.fastfoodie;
         import android.support.v4.app.Fragment;
         import android.support.v7.widget.LinearLayoutManager;
         import android.support.v7.widget.RecyclerView;
+        import android.support.v7.widget.SimpleItemAnimator;
         import android.support.v7.widget.helper.ItemTouchHelper;
         import android.util.Log;
         import android.view.LayoutInflater;
@@ -70,12 +71,18 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
         return view;
     }
 
-    public void buildRecyclerView(final ArrayList<RestaurantInfo> list) {
+    public void buildRecyclerView(final ArrayList<RestaurantInfo> list, final boolean showFavoriteBtn) {
         mRecyclerView = view.findViewById(R.id.restaurants_recyclerView);
+
+        // Don't allow the dim animation on an item
+        // when favoring a restaurant.
+        ((SimpleItemAnimator) mRecyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+
+        // Set all cards to the same size
         mRecyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager =
                 new LinearLayoutManager(getActivity());
-        mAdapter = new RestaurantListAdapter(list, getContext());
+        mAdapter = new RestaurantListAdapter(list, getContext(), showFavoriteBtn);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(
@@ -83,7 +90,13 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
             @Override
             public void onItemClick(int position) {
                 // Send user to the Yelp's restaurant page
-                ArrayList<RestaurantInfo> restaurantList = mCallback.getTempRestaurantList();
+                ArrayList<RestaurantInfo> restaurantList = null;
+                if (showFavoriteBtn) {
+                    restaurantList = mCallback.getTempRestaurantList();
+                } else {
+                    restaurantList = mCallback.getTempForbiddenList();
+                }
+
                 RestaurantInfo restaurant = restaurantList.get(position);
 
                 Uri uri = Uri.parse(restaurant.getWebsite());
@@ -199,9 +212,9 @@ public class RestaurantListFragment extends Fragment implements FragmentInterfac
 
     public void updateRecyclerView(boolean removedRes) {
         if (removedRes) {
-            buildRecyclerView(mCallback.getTempForbiddenList());
+            buildRecyclerView(mCallback.getTempForbiddenList(), false);
         } else {
-            buildRecyclerView(mCallback.getTempRestaurantList());
+            buildRecyclerView(mCallback.getTempRestaurantList(), true);
         }
 
         if (!mCallback.getIsInitialized()) {

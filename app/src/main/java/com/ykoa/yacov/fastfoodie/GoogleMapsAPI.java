@@ -34,6 +34,7 @@ public class GoogleMapsAPI extends FragmentActivity
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
     private LatLng currPosition;
+    private int radius = 0;
 
     // The entry points to the Places API.
     private GeoDataClient mGeoDataClient;
@@ -188,16 +189,17 @@ public class GoogleMapsAPI extends FragmentActivity
     public boolean onMyLocationButtonClick() {
         // Once the "my location" button on the map was clicked,
         // the camera will move and zoom on the current device location
-        setCamera();
+        setCamera(radius);
         return true;
     }
 
-    private void setCamera() {
+    public void setCamera(int radius) {
+        this.radius = radius;
         LatLngBounds.Builder locationBounds = new LatLngBounds.Builder();
         Location loc = getLocation();
         double lat = loc.getLatitude();
         double lon = loc.getLongitude();
-        double scale = 600 * 0.00001;
+        double scale = radius * 0.00001;
         locationBounds.include(new LatLng(lat + scale, lon + scale));
         locationBounds.include(new LatLng(lat - scale, lon + scale));
         locationBounds.include(new LatLng(lat + scale, lon - scale));

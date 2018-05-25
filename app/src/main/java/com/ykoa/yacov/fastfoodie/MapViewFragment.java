@@ -2,8 +2,6 @@ package com.ykoa.yacov.fastfoodie;
 
         import android.content.Context;
         import android.content.res.Resources;
-        import android.graphics.Bitmap;
-        import android.graphics.BitmapFactory;
         import android.graphics.Color;
         import android.location.Location;
         import android.os.AsyncTask;
@@ -17,15 +15,12 @@ package com.ykoa.yacov.fastfoodie;
         import android.widget.FrameLayout;
         import android.widget.ImageView;
         import android.widget.TextView;
-        import android.widget.Toast;
 
-        import com.google.android.gms.maps.CameraUpdate;
         import com.google.android.gms.maps.CameraUpdateFactory;
         import com.google.android.gms.maps.GoogleMap;
         import com.google.android.gms.maps.OnMapReadyCallback;
         import com.google.android.gms.maps.SupportMapFragment;
         import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-        import com.google.android.gms.maps.model.Circle;
         import com.google.android.gms.maps.model.CircleOptions;
         import com.google.android.gms.maps.model.LatLng;
         import com.google.android.gms.maps.model.LatLngBounds;
@@ -38,11 +33,8 @@ package com.ykoa.yacov.fastfoodie;
 
         import java.io.IOException;
         import java.io.Serializable;
-        import java.text.DecimalFormat;
         import java.util.ArrayList;
-        import java.util.HashMap;
         import java.util.HashSet;
-        import java.util.List;
 
 /**
  * Created by yacov on 3/7/2018.
@@ -109,8 +101,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             Log.e(TAG, "Can't find style. Error: ", e);
         }
 
-        // Use a custom info window adapter to handle multiple lines of text in the
-        // info window contents.
+        // Use a custom info window adapter to handle
+        // multiple lines of text in the info window contents
         mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
             @Override
@@ -122,13 +114,13 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
             @Override
             public View getInfoContents(Marker marker) {
                 // Inflate the layouts for the info window, title and snippet.
-                View infoWindow = getActivity().getLayoutInflater().inflate(R.layout.custom_info_contents,
+                View infoWindow = getActivity().getLayoutInflater().inflate(R.layout.custom_info_window,
                         (FrameLayout) getActivity().findViewById(R.id.map), false);
 
-                TextView title = ((TextView) infoWindow.findViewById(R.id.title));
+                TextView title = (TextView) infoWindow.findViewById(R.id.title);
                 title.setText(marker.getTitle());
 
-                TextView snippet = ((TextView) infoWindow.findViewById(R.id.snippet));
+                TextView snippet = (TextView) infoWindow.findViewById(R.id.snippet);
                 snippet.setText(marker.getSnippet());
 
                 return infoWindow;
@@ -201,7 +193,8 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
                 int totalRestaurants = 0;
                 for (int i = 0; i < MAX_OFFSET_NUM; i++) {
                     jsonData.add(yelpService.setYelpRequest(getContext(),
-                            p.latitude, p.longitude, mCallback.getRadius(), YELP_API_LIMIT, i * YELP_API_LIMIT, "restaurants"));
+                            p.latitude, p.longitude, mCallback.getRadius(), YELP_API_LIMIT,
+                            i * YELP_API_LIMIT, "restaurants"));
                     totalRestaurants = new JSONObject(jsonData.get(i)).getInt("total");
                     if (totalRestaurants <= i * YELP_API_LIMIT) {break;}
                 }
@@ -314,26 +307,13 @@ public class MapViewFragment extends Fragment implements FragmentInterface,
         }
 
         // Set camera to show all markers
-        setCamera();
+        mMapAPI.setCamera(mCallback.getRadius());
 
         // Set restaurant list
         mCallback.setTempRestaurantList(tempList);
 
         // Set temporary forbidden list
         mCallback.setTempForbiddenList(tempForbiddenList);
-    }
-
-    private void setCamera() {
-        LatLngBounds.Builder locationBounds = new LatLngBounds.Builder();
-        LatLng loc = mCallback.getLatLng();
-        double lat = loc.latitude;
-        double lon = loc.longitude;
-        double scale = mCallback.getRadius() * 0.00001;
-        locationBounds.include(new LatLng(lat + scale, lon + scale));
-        locationBounds.include(new LatLng(lat - scale, lon + scale));
-        locationBounds.include(new LatLng(lat + scale, lon - scale));
-        locationBounds.include(new LatLng(lat - scale, lon - scale));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(locationBounds.build(), 10));
     }
 
     @Override
